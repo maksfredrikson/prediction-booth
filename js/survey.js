@@ -239,7 +239,7 @@ function showResult(card, meta) {
   const actions = el("div", "actions");
   if (meta.saved) actions.append(button("Print receipt", "btn", "print", () => window.print()), button("Next visitor: start again", "linkbtn", "", again));
   else actions.append(button("Answer yourself", "btn", "next", again), button("Print this receipt", "linkbtn", "print", () => window.print()));
-  const see = meta.preset != null ? link("scenarios.html", "All scenarios") : link("index.html#explore", "See all cards");
+  const see = meta.preset != null ? link("scenarios.html#" + (meta.preset + 1), "Back to scenarios") : link("index.html#explore", "See all cards");
   see.className = "linkbtn";
   actions.append(see);
 

@@ -23,17 +23,17 @@
 </aside>
 
 <main class="main">
-  <section class="sec stack">
-    <div class="stack stack--s">
+  <section class="sec stack stack--l">
+    <!-- the scenarios are chosen with the row of chips at the very top -->
+    <div class="head">
       <div class="kicker">Scenarios</div>
-      <h1 class="big">Where it could go.</h1>
+      <div class="chips" id="scenario-nav" role="group" aria-label="Choose a scenario"></div>
     </div>
-    <p class="lead">Five ready-made predictions, written before any visitor answered. They are not data: nobody gave them. Read them, or open one as a receipt to see what an answer looks like.</p>
+    <div id="scenario" aria-live="polite"></div>
   </section>
 
-  <div id="scenarios"></div>
-
   <section class="sec stack">
+    <p class="read muted">These five predictions were written before any visitor answered. They are not data: nobody gave them.</p>
     <p class="lead">Which one is closest to yours?</p>
     <div class="actions"><a class="btn" href="survey.html">Start the survey</a></div>
   </section>
