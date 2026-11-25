@@ -1,14 +1,14 @@
 // An answer as five labelled rows, laid out like the paper card: each row has its question,
 // the step numbers and the two end labels. Touching a dot shows what that step means.
 import { BOOTH as B } from "./content.js";
-import { el, rowNames } from "./dots.js";
+import { el, rowNames, STEP_LABELS } from "./dots.js";
 import { createScale } from "./scale.js";
 
 export const poleLabels = r => (r === 4 ? [B.time.l, B.time.r] : [B.axes[r].l, B.axes[r].r]);
-export const stepLabels = r => (r === 4 ? B.time.labels : ["1", "2", "3", "4", "5", "6", "7"]);
+export const stepLabels = r => (r === 4 ? B.time.labels : STEP_LABELS);
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 export const stepSentence = (r, i) =>
-  r === 4 ? cap(B.time.phrases[i - 1]) + "." : "A country where " + B.axes[r].steps[i - 1].t + ".";
+  r === 4 ? cap(B.time.phrases[i - 1]) + "." : "A country where " + B.axes[r].steps[i - 1] + ".";
 
 export function poles(r) {
   const [l, rt] = poleLabels(r);

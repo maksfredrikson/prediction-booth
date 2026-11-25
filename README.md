@@ -26,7 +26,7 @@ network off.
 | Page | File | What it does |
 |---|---|---|
 | Landing and Explore | `index.html`, `js/explore.js` | One scrolling page. On top: the invitation to the survey. Below: the field (a bar chart per question, today up and prediction down), the roll (every card in order of arrival), five ready-made answers, and saving or adding cards as a file. |
-| Survey | `survey.html`, `js/survey.js` | Made for touch. First the time frame (5, 10, 15, 25 or 30 years). Then four questions, each on two lines: today and the prediction; the meaning of a chosen step shows under its line. Then one last step: consent, work, lives in the Netherlands, one line of reasoning. Then the receipt on its own screen. |
+| Survey | `survey.html`, `js/survey.js` | Made for touch. First the time frame (5, 10, 15, 20 or 25 years). Then four questions on a five-step scale, each on two lines: today and the prediction; the meaning of a chosen step shows under its line. Then one last step: consent (required), one line of reasoning and a "tip" of data (work, lives in the Netherlands), both optional. Then the receipt on its own screen. |
 | About | `about.html`, `js/about.js` | The towel story, then every sentence the scenario text can be made of. |
 
 ## Look
@@ -36,11 +36,11 @@ of information and one clear action per screen. Type and marks follow the receip
 monospace face, no colour, dark by default (the small half dot in the navigation switches to
 light). Today is a big halftone dot, the prediction a small solid dot.
 
-Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 1 to 7 = choose a step.
+Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 1 to 5 = choose a step.
 
 ## Where things live
 
-- `js/content.js` is the single content source: the four questions, the 28 step descriptions, the
+- `js/content.js` is the single content source: the four questions, the 20 step descriptions (five steps per question), the
   price lines, the time frame, the ready-made answers and the take-home questions. Site, receipt
   and paper card all read it. Edit text there and nowhere else.
 - `js/compose.js` assembles the scenario text from the chosen steps, and generates a card's name
@@ -57,11 +57,12 @@ Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 
 
 ## Links that open an answer
 
-- `survey.html?m=343566372` opens an answer without saving it: four digits for today, four for
-  the prediction, one for the step on the time frame (1 to 5).
+- `survey.html?m=232344532` opens an answer without saving it: four digits for today, four for
+  the prediction, one for the step on the time frame (each 1 to 5).
 - `survey.html?preset=3` opens a ready-made answer (0 to 4).
 
 ## What is kept
 
-Marks, the time frame, one line of reasoning, two answers about the visitor (work, lives in the
-Netherlands) and their consent answer. Never a name or a contact detail.
+Marks, the time frame, the consent answer, and what a visitor chooses to add: one line of
+reasoning and a tip of data (work, lives in the Netherlands). Never a name or a contact detail.
+Cards carry their scale; cards from the earlier seven-step version are never mixed in.

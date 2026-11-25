@@ -1,6 +1,6 @@
 // Survey, made for touch. It opens on the time frame, then asks four questions, each on
-// two lines (today and the prediction), then one last step: consent plus a few words about
-// the visitor. The receipt follows on its own screen. One clear action per screen.
+// two lines (today and the prediction), then one last step: consent, an optional reason and
+// an optional tip of data about the visitor. The receipt follows on its own screen. One clear action per screen.
 import { BOOTH as B } from "./content.js";
 import { complete } from "./compose.js";
 import { el } from "./dots.js";
@@ -95,7 +95,7 @@ function scaleScreen(a) {
       cap.textContent = "";
       if (i == null) { cap.append(el("p", "muted", "Tap a step. Its meaning shows here.")); return; }
       if (isTime) cap.append(el("div", "line__step", B.time.labels[i - 1] + " years"), el("p", "", "You predict where " + B.place + " will be " + B.time.phrases[i - 1] + "."));
-      else cap.append(el("div", "line__step", "Step " + i + " of 7"), el("p", "", "A country where " + ax.steps[i - 1].t + "."));
+      else cap.append(el("div", "line__step", "Step " + i + " of " + B.steps), el("p", "", "A country where " + ax.steps[i - 1] + "."));
     };
     return { row, get, set, paintLine };
   };
@@ -114,7 +114,7 @@ function scaleScreen(a) {
   board.append(isTime ? "" : ends, ...lines.map(l => l.row));
 
   mount(stack("stack--l wide",
-    isTime ? head(0, "Before the questions", ax.q) : head(a + 1, "Question " + (a + 1) + " of " + B.axes.length, ax.q),
+    isTime ? head(0, "Before the questions", ax.ask || ax.q) : head(a + 1, "Question " + (a + 1) + " of " + B.axes.length, ax.q),
     board, actions));
 
   function paint() {
@@ -124,15 +124,16 @@ function scaleScreen(a) {
   }
   // number keys: fill the first empty line, then change the last one
   const pick = i => {
-    if (i > (isTime ? B.time.labels.length : 7)) return;
+    if (i > (isTime ? B.time.labels.length : B.steps)) return;
     const l = lines.find(x => x.get() == null) || lines[lines.length - 1];
     l.set(i); paint();
   };
   return { paint, pick };
 }
 
-// A row of large choices; exactly one is chosen. options: [[value, label], ...]
-function choices(labelText, options, current, onPick) {
+// A row of large choices; one is chosen. options: [[value, label], ...]. An optional row can
+// be un-chosen by tapping the chosen one again.
+function choices(labelText, options, current, onPick, optional) {
   const box = el("div", "stack stack--s");
   const group = el("div", "choices");
   group.setAttribute("role", "radiogroup");
@@ -141,7 +142,7 @@ function choices(labelText, options, current, onPick) {
     const b = el("button", "choice", text);
     b.type = "button";
     b.setAttribute("role", "radio");
-    b.addEventListener("click", () => { current = value; paint(); onPick(value); });
+    b.addEventListener("click", () => { current = optional && current === value ? null : value; paint(); onPick(current); });
     group.appendChild(b);
     return { b, value };
   });
@@ -151,7 +152,7 @@ function choices(labelText, options, current, onPick) {
   return box;
 }
 
-// ---- the last step: consent, plus a reason and two things about the visitor ----------
+// ---- the last step: consent (required), a reason and a tip of data (both optional) -----
 function lastScreen() {
   const field = (id, labelText, max, value) => {
     const f = el("div", "field");
@@ -168,9 +169,8 @@ function lastScreen() {
   const give = button("Donate my view", "btn", "", () => { keep(); donate(); });
   const hint = el("p", "note");
   const ready = () => {
-    const missing = [state.consent == null ? "consent" : null, state.role == null ? "your work" : null, state.livesNL == null ? "where you live" : null].filter(Boolean);
-    give.disabled = missing.length > 0;
-    hint.textContent = missing.length ? "Still to answer: " + missing.join(", ") + "."
+    give.disabled = state.consent == null;
+    hint.textContent = state.consent == null ? "Answer the consent question to donate."
       : state.consent ? "Ready. Shown without your name: there is no name to show."
       : "Ready. Your view still counts at the booth; it will not appear in the publication.";
   };
@@ -179,14 +179,18 @@ function lastScreen() {
   ready();
 
   mount(stack("stack--l wide",
-    head(STEPS, "Last step", "Consent, and two things about you"),
+    head(STEPS, "Last step", "Consent, then donate"),
     stack("",
-      el("p", "lead", "My marks and my words may be shown, without my name, in a master's research publication."),
+      el("p", "lead", "A photo of my card, my marks and my words may be shown, without my name, in a master's research publication."),
       choices("Your consent", [[true, "Yes, they may be shown"], [false, "No, keep them out of the publication"]], state.consent, v => { state.consent = v; ready(); })),
-    choices("I work as", [["designer", "a designer"], ["engineer", "an engineer"], ["other", "something else"]], state.role, v => { state.role = v; ready(); }),
-    choices("I live in the Netherlands", [[true, "Yes"], [false, "No"]], state.livesNL, v => { state.livesNL = v; ready(); }),
-    stack("form", because.f, paper.f),
-    stack("stack--s", el("p", "note", "The booth keeps your marks, these answers and your one line. Never your name or a contact detail: please leave them out."), hint),
+    stack("form", because.f),
+    stack("",
+      stack("stack--s", el("div", "kicker", "Optional"), el("h2", "big big--s", "Tip your data"),
+        el("p", "muted", "Like a tip on a bill: two more answers, only if you want to give them. They help read the cards together.")),
+      choices("I work as", [["designer", "a designer"], ["engineer", "an engineer"], ["other", "something else"]], state.role, v => { state.role = v; }, true),
+      choices("I live in the Netherlands", [[true, "Yes"], [false, "No"]], state.livesNL, v => { state.livesNL = v; }, true)),
+    stack("form", paper.f),
+    stack("stack--s", el("p", "note", "The booth keeps your marks, your consent answer, and whatever you add here. Never your name or a contact detail: please leave them out."), hint),
     actions));
 }
 
@@ -250,13 +254,14 @@ function usePreset(k) {
   const pr = B.presets[k];
   if (!pr) return;
   const years = 2;
-  showResult({ today: [4, 4, 4, 4], prediction: pr.pred.slice(), years, at: new Date().toISOString() },
+  const mid = Math.ceil(B.steps / 2);
+  showResult({ today: [mid, mid, mid, mid], prediction: pr.pred.slice(), years, at: new Date().toISOString() },
     { saved: false, preset: k, title: pr.name,
       note: "A ready-made answer: today sits in the middle of every scale, the prediction is this preset, " + B.time.phrases[years - 1] + "." +
         (pr.text ? " From the zine: " + pr.text : "") });
 }
 
-// ---- keys (quiet helpers): Enter = the main action, Esc = back, 1-7 = choose a step ----
+// ---- keys (quiet helpers): Enter = the main action, Esc = back, 1-5 = choose a step ----
 document.addEventListener("keydown", e => {
   if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
   const inField = e.target instanceof Element && e.target.matches("input, textarea, select");
@@ -264,14 +269,14 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") press("back");
   if (inField) return;
   if (e.key === "Enter" && !(e.target instanceof Element && e.target.closest("button, a"))) press("next");
-  if (/^[1-7]$/.test(e.key) && view) { e.preventDefault(); view.pick(parseInt(e.key, 10)); }
+  if (/^[1-9]$/.test(e.key) && view) { e.preventDefault(); view.pick(parseInt(e.key, 10)); }
 });
 
-// ?m=343566372 opens an answer without saving it: four digits for today, four for the
-// prediction, one for the step on the time frame (1 to 5). ?preset=3 opens a ready-made answer.
+// ?m=232344532 opens an answer without saving it: four digits for today, four for the
+// prediction, one for the step on the time frame (each 1 to 5). ?preset=3 opens a ready-made answer.
 const qs = new URLSearchParams(location.search);
-const digits = (qs.get("m") || "").replace(/[^1-7]/g, "").split("").map(Number);
-if (digits.length === 9 && digits[8] <= B.time.labels.length) {
+const digits = (qs.get("m") || "").replace(/[^1-9]/g, "").split("").map(Number);
+if (digits.length === 9 && digits.slice(0, 8).every(v => v <= B.steps) && digits[8] <= B.time.labels.length) {
   showResult({ today: digits.slice(0, 4), prediction: digits.slice(4, 8), years: digits[8], at: new Date().toISOString() },
     { saved: false, title: "An answer from a link", note: "Opened from a link. Nothing is saved." });
 } else if (qs.get("preset") !== null && B.presets[parseInt(qs.get("preset"), 10)]) {

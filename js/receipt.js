@@ -44,17 +44,21 @@ const when = iso => {
   return d.getDate() + " " + MONTHS[d.getMonth()] + " " + d.getFullYear() + " " + p(d.getHours()) + ":" + p(d.getMinutes());
 };
 
-// One row of seven: ( ) today, * prediction, (*) both on the same step.
-export function marksRow(today, pred, n = 7) {
+// One row of marks: ( ) today, * prediction, (*) both on the same step. The cells are as
+// wide as the 32 characters allow: six characters each for five steps.
+function cells(n, glyph) {
+  const w = Math.max(4, Math.floor(30 / n)), left = Math.floor((w - 3) / 2);
   let s = "  ";
-  for (let i = 1; i <= n; i++) s += today === i && pred === i ? "(*) " : today === i ? "( ) " : pred === i ? " *  " : " .  ";
+  for (let i = 1; i <= n; i++) { const g = glyph(i); s += " ".repeat(left) + g + " ".repeat(Math.max(0, w - left - g.length)); }
   return s.trimEnd();
 }
-const NUMS = "   1   2   3   4   5   6   7";
-// the time frame's own labels under its row: "   5  10  15  25  30"
-export const yearsLabels = () => ("  " + B.time.labels.map(l => (l.length === 1 ? " " + l + "  " : " " + l + " ")).join("")).trimEnd();
-export const yearsRows = card => [marksRow(null, card.years, B.time.labels.length), yearsLabels() + " yrs"];
-
+export function marksRow(today, pred, n = B.steps) {
+  return cells(n, i => (today === i && pred === i ? "(*)" : today === i ? "( )" : pred === i ? " * " : " . "));
+}
+const labelsRow = labels => cells(labels.length, i => { const l = labels[i - 1]; return l.length === 1 ? " " + l + " " : l.length === 2 ? l + " " : l; });
+const NUMS = labelsRow(Array.from({ length: B.steps }, (_, i) => String(i + 1)));
+// the time frame: its row of marks, and its own labels underneath
+export const yearsRows = card => [marksRow(null, card.years, B.time.labels.length), labelsRow(B.time.labels)];
 
 // The receipt as lines: [{ t: text, s: section number, k: "total" for the total block }].
 // card: a saved card, or marks only. opts.label replaces the number line for examples.
@@ -75,7 +79,7 @@ export function receiptParts(card, opts = {}) {
   else add(lr("No " + pad3(card.no || 0), when(card.at)));
   cut(); add(rule("-"));
   add("MARKS   ( ) today  * prediction");
-  all(wrap(B.time.q, W, "  "));
+  all(wrap(B.time.q + " (years)", W, "  "));
   all(yearsRows(card));
   add(NUMS);
   B.axes.forEach((ax, a) => {
@@ -101,14 +105,19 @@ export function receiptParts(card, opts = {}) {
   add("1 x view of today");
   add("1 x prediction");
   if (card.because) all(wrap('1 x reason: "' + card.because + '"', W, "  "));
+  if (card.role || typeof card.livesNL === "boolean") {
+    add("TIP (your data)");
+    if (card.role) add("+ work: " + card.role);
+    if (typeof card.livesNL === "boolean") add("+ lives in the Netherlands: " + (card.livesNL ? "yes" : "no"));
+  }
   add(lr("PAID", "EUR 0.00"));
   add("");
   add("KEPT BY THE BOOTH");
-  all(wrap(opts.label ? "Nothing: this one is an example." : "Your marks, your reason and your two answers. Never your name."));
+  all(wrap(opts.label ? "Nothing: this one is an example." : "Your marks, your reason and any data you tipped. Never your name."));
   if (!opts.label && typeof card.consent === "boolean") {
     add("");
     add("CONSENT");
-    all(wrap("Shown without my name in a master's research publication:"));
+    all(wrap("A photo of my card, my marks and my words, shown without my name in a master's research publication:"));
     add(lr("", card.consent ? "YES" : "NO"));
   }
   cut(); add(rule("-"));

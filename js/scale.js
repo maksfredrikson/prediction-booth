@@ -1,9 +1,9 @@
-// The scale: a row of dots that is the control (seven steps, or five for the time frame).
+// The scale: a row of dots that is the control (five steps).
 // Tap, drag or use the arrow keys.
 // The chosen dot grows. It can carry two marks at once: today (big) and prediction (small).
-import { el, dot } from "./dots.js";
+import { el, dot, STEP_LABELS } from "./dots.js";
 
-export function createScale({ label, onPick, onTouch, read = false, labels = ["1", "2", "3", "4", "5", "6", "7"] }) {
+export function createScale({ label, onPick, onTouch, read = false, labels = STEP_LABELS }) {
   const n = labels.length;
   const root = el("div", "scale" + (read ? " scale--read" : ""));
   const track = el("div", "dots");

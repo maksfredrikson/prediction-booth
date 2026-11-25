@@ -17,11 +17,8 @@ export function dot(isToday, isPred) {
   return d;
 }
 
-export function dotsRow(today, pred) {
-  const row = el("div", "dots");
-  for (let i = 1; i <= 7; i++) row.appendChild(dot(today === i, pred === i));
-  return row;
-}
+// the step numbers of a question: "1" to "5"
+export const STEP_LABELS = Array.from({ length: B.steps }, (_, i) => String(i + 1));
 
 export function legend() {
   const l = el("div", "legend");

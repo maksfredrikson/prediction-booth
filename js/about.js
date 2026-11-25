@@ -11,13 +11,13 @@ function block(index, ax, sentence, prices) {
   const head = el("div", "stack stack--s");
   head.append(el("div", "kicker", index), el("h2", "mid", ax.q));
 
-  let pinned = ax.labels ? 2 : 4, touched = null;
+  let pinned = ax.labels ? 2 : Math.ceil(B.steps / 2), touched = null;
   const desc = el("div", "desc");
   desc.setAttribute("aria-live", "polite");
   const paint = () => {
     const i = touched ?? pinned;
     desc.textContent = "";
-    desc.append(el("div", "desc__step", (ax.labels ? ax.labels[i - 1] + " years adds" : "Step " + i + " of 7 adds")), el("p", "", sentence(i)));
+    desc.append(el("div", "desc__step", (ax.labels ? ax.labels[i - 1] + " years adds" : "Step " + i + " of " + B.steps + " adds")), el("p", "", sentence(i)));
   };
   const scale = createScale({
     label: ax.q, labels: ax.labels || undefined,
@@ -41,6 +41,6 @@ function block(index, ax, sentence, prices) {
 }
 
 B.axes.forEach((ax, a) => {
-  table.appendChild(block("Question " + (a + 1), ax, i => "\u2026 a country where " + ax.steps[i - 1].t, [ax.toLeft, ax.toRight]));
+  table.appendChild(block("Question " + (a + 1), ax, i => "\u2026 a country where " + ax.steps[i - 1], [ax.toLeft, ax.toRight]));
 });
 table.appendChild(block("The time frame", B.time, i => "\u2026 " + B.time.phrases[i - 1] + " \u2026", null));

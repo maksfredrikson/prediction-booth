@@ -86,7 +86,7 @@
     const title = el("div", "title", window.BOOTH.title);
     title.appendChild(el("small", "", "the Netherlands today, and where it is heading"));
     const no = el("div", "no", "No " + pad(n));
-    no.appendChild(el("small", "", "1 = left · 7 = right"));
+    no.appendChild(el("small", "", "1 = left · " + window.BOOTH.steps + " = right"));
     head.append(title, no);
     c.appendChild(head);
 
@@ -100,7 +100,7 @@
       const row = el("div", "axis");
       row.appendChild(el("div", "q", ax.q));
       const dots = el("div", "dots");
-      for (let i = 1; i <= 7; i++) dots.appendChild(el("div", "ring", String(i)));
+      for (let i = 1; i <= window.BOOTH.steps; i++) dots.appendChild(el("div", "ring", String(i)));
       row.appendChild(dots);
       const poles = el("div", "poles");
       poles.append(el("div", "", ax.l), el("div", "", ax.r));

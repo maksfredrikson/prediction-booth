@@ -61,6 +61,7 @@ button, input { font: inherit; color: inherit; }
 .kicker { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .big { font-size: clamp(28px, 3.6vw, 42px); line-height: 1.1; font-weight: 500; letter-spacing: -0.02em; max-width: 20em; }
 .mid { font-size: 20px; line-height: 1.3; font-weight: 500; }
+.big--s { font-size: clamp(24px, 2.8vw, 32px); }
 .lead { font-size: 18px; line-height: 1.5; max-width: 38em; }
 .small, .note { font-size: 13px; }
 .muted, .note { color: var(--muted); }
@@ -150,7 +151,7 @@ button, input { font: inherit; color: inherit; }
 .scale--read .scale__move { top: calc(var(--rowh) / 2 - 1.5px); height: 3px; }
 .scale--read + .poles { font-size: 13px; color: var(--muted); margin-top: 6px; }
 
-/* two lines, two questions: today above, the prediction below, on the same seven steps.
+/* two lines, two questions: today above, the prediction below, on the same five steps.
    Made for touch: the meaning of the chosen step shows under its line. */
 .lines { display: flex; flex-direction: column; gap: 8px; }
 .line { display: grid; grid-template-columns: 190px minmax(0, 1fr); column-gap: 32px; align-items: start; }

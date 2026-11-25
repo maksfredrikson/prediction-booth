@@ -2,14 +2,18 @@
 // A card holds marks and words, never a name or contact detail.
 import { BOOTH } from "./content.js";
 
-const KEY = "prediction-booth-cards-v2";   // v2: years is a step on the five-step time frame
+// v3: every scale has five steps. Cards from the seven-step version live under older keys and
+// are left alone, never mixed in. Each card also carries its scale, so a file from the old
+// version is refused on import.
+const KEY = "prediction-booth-cards-v3";
 
-const int17 = v => Number.isInteger(v) && v >= 1 && v <= 7;
+const int17 = v => Number.isInteger(v) && v >= 1 && v <= BOOTH.steps;
 const str = (v, max) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, max) : "");
 
 // Returns a clean card, or null if the marks are not valid.
 export function clean(c) {
   if (!c || !Array.isArray(c.today) || !Array.isArray(c.prediction)) return null;
+  if (c.scale !== BOOTH.steps) return null;
   if (c.today.length !== 4 || c.prediction.length !== 4) return null;
   if (!c.today.every(int17) || !c.prediction.every(int17)) return null;
   if (!Number.isInteger(c.years) || c.years < 1 || c.years > BOOTH.time.labels.length) return null;
@@ -19,10 +23,11 @@ export function clean(c) {
     at: str(c.at, 40) || new Date().toISOString(),
     today: c.today.slice(),
     prediction: c.prediction.slice(),
+    scale: BOOTH.steps,
     years: c.years,
     because: str(c.because, 120),
     role: ["designer", "engineer", "other"].includes(c.role) ? c.role : null,
-    livesNL: c.livesNL === true,
+    livesNL: typeof c.livesNL === "boolean" ? c.livesNL : null,
     consent: c.consent === true
   };
 }
@@ -42,7 +47,7 @@ function save(cards) {
 
 export function add(card) {
   const all = load();
-  const entry = clean({ ...card, id: newId(), at: new Date().toISOString() });
+  const entry = clean({ ...card, scale: BOOTH.steps, id: newId(), at: new Date().toISOString() });
   if (!entry) return null;
   if (!entry.no) entry.no = all.reduce((m, c) => Math.max(m, c.no || 0), 0) + 1;
   all.push(entry);
@@ -51,7 +56,7 @@ export function add(card) {
 
 export function exportFile() {
   const cards = load();
-  const data = { booth: "Prediction Booth", version: 1, exported: new Date().toISOString(), cards };
+  const data = { booth: "Prediction Booth", version: 2, scale: BOOTH.steps, exported: new Date().toISOString(), cards };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
