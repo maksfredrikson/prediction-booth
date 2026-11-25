@@ -207,6 +207,14 @@ dialog.card { width: min(760px, calc(100vw - 24px)); max-height: calc(100dvh - 3
 dialog.card::backdrop { background: rgba(0, 0, 0, .6); }
 .dialog-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
 
+/* the three questions as a small table; on a phone each row becomes a block */
+.lens { max-width: 980px; border-top: 1px solid var(--ink); }
+.lens__row { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; column-gap: 24px; padding: 14px 0; border-bottom: 1px dashed var(--line); }
+.lens__row--head { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 10px 0; }
+.lens__row b { font-weight: 700; }
+.lens__row--now { border-bottom: 1px solid var(--ink); }
+.lens__row--now span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 10px; border-radius: 50%; background: var(--ink); }
+
 /* ---- about --------------------------------------------------------------------- */
 .steps { counter-reset: r; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; max-width: 64ch; }
 .steps li { counter-increment: r; display: grid; grid-template-columns: 3ch 1fr; }
@@ -241,6 +249,9 @@ dialog.card::backdrop { background: rgba(0, 0, 0, .6); }
   .choice { flex: 1 1 100%; }
   .progress i { flex: 1; width: auto; }
   .prices { grid-template-columns: 1fr; gap: 16px; }
+  .lens__row { grid-template-columns: 1fr; row-gap: 6px; }
+  .lens__row--head { display: none; }
+  .lens__row span[data-label]::before { content: attr(data-label) ": "; display: inline; width: auto; height: auto; margin: 0; border-radius: 0; background: none; color: var(--muted); }
   .paper { padding: 28px 0 40px; border-left: 0; border-right: 0; margin: 0 -16px; width: auto; max-width: none; }
   .receipt { font-size: 14px; margin: 0 auto; }
   .charts { gap: 40px; }
