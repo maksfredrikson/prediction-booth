@@ -247,7 +247,14 @@ function showResult(card, meta) {
     ? stack("", stack("stack--s", el("div", "kicker", "Donated, No " + pad3(card.no)), el("h1", "big", "Thank you. Here is your receipt.")), actions)
     : stack("", stack("stack--s", el("div", "kicker", "Example, not saved"), el("h1", "big", meta.title)),
         el("p", "lead", meta.note), meta.preset != null ? presetChips(meta.preset) : null, actions);
-  mount(stack("stack--l", top, stack("stack--s", paper, copy)));
+  // a small note in context: where the text on the receipt comes from
+  const info = el("details", "info");
+  info.append(el("summary", "", "How this text is made"));
+  const why = el("p", "", "The text on the receipt is put together from sentences written in advance: one for each step you chose, and a line on what your biggest move costs. ");
+  why.append(link("about.html#how", "See every sentence"), ".");
+  info.append(why);
+
+  mount(stack("stack--l", top, stack("stack--s", info, paper, copy)));
 }
 
 function usePreset(k) {

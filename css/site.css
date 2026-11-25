@@ -183,6 +183,13 @@ button, input { font: inherit; color: inherit; }
 .paper { background: var(--paper); padding: 40px 36px 56px; border: 1px solid var(--line); width: fit-content; max-width: 100%; }
 .receipt { font-size: 16px; line-height: 1.35; white-space: pre; width: 32ch; }
 .rsec--total { font-weight: 700; }
+/* a small note in context: an "i" in a ring that opens a few lines of explanation */
+.info { max-width: 44ch; font-size: 14px; color: var(--muted); }
+.info summary { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
+.info summary::-webkit-details-marker { display: none; }
+.info summary::before { content: "i"; display: grid; place-items: center; width: 20px; height: 20px; border: 1.5px solid currentColor; border-radius: 50%; font-size: 12px; font-weight: 700; }
+.info summary:hover, .info[open] summary { color: var(--ink); }
+.info p { margin: 0 0 12px 30px; color: var(--ink); }
 .rl { display: block; min-height: 1.35em; }
 
 /* ---- explore ----------------------------------------------------------------- */

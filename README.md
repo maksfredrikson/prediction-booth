@@ -44,8 +44,9 @@ Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 
 - `js/content.js` is the single content source: the four questions, the 20 step descriptions (five steps per question), the
   price lines, the time frame, the ready-made answers and the take-home questions. Site, receipt
   and paper card all read it. Edit text there and nowhere else.
-- `js/compose.js` assembles the scenario text from the chosen steps, and generates a card's name
-  from the price of its biggest move. No AI, no network.
+- `js/compose.js` assembles the scenario text from the chosen steps by a fixed rule, and generates
+  a card's name from the price of its biggest move. Nothing is generated while a visitor answers,
+  and there is no network call.
 - `js/receipt.js` builds the receipt: 32 characters per line, plain ASCII, for a 58 mm thermal
   printer. On screen it is one unbroken strip; it prints through the browser's print dialog.
 - `js/scale.js` is the dot control; `js/pattern.js` draws an answer as five labelled rows.

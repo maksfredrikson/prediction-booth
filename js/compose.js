@@ -1,4 +1,4 @@
-// The scenario text. No AI and no network: the text is assembled from the step
+// The scenario text. Nothing is generated and there is no network call: the text is assembled from the step
 // descriptions in content.js. Logic taken from the first prototype (narrative.html).
 // Marks are step numbers 1 to 5, as printed on the paper card.
 import { BOOTH as B } from "./content.js";
