@@ -114,6 +114,7 @@ export function receiptParts(card, opts = {}) {
   add("");
   add("KEPT BY THE BOOTH");
   all(wrap(opts.label ? "Nothing: this one is an example." : "Your marks, your reason and any data you tipped. Never your name."));
+  if (opts.mailed) all(wrap("Your email, kept apart from this card."));
   if (!opts.label && typeof card.consent === "boolean") {
     add("");
     add("CONSENT");

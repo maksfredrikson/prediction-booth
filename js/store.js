@@ -53,9 +53,28 @@ export function add(card) {
   return save(all) ? entry : null;
 }
 
+// Email addresses, for sending the results. A list of its own: nothing links an address
+// to a card.
+const MAIL = "prediction-booth-emails-v1";
+export const validEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || "").trim());
+export function loadEmails() {
+  try {
+    const all = JSON.parse(localStorage.getItem(MAIL) || "[]");
+    return Array.isArray(all) ? all.filter(e => e && validEmail(e.email)).map(e => ({ email: String(e.email).trim().toLowerCase(), at: str(e.at, 40) })) : [];
+  } catch (e) { return []; }
+}
+export function addEmail(email) {
+  if (!validEmail(email)) return false;
+  const all = loadEmails();
+  const addr = String(email).trim().toLowerCase();
+  // only the day is kept, so an address cannot be matched to a card by its time
+  if (!all.some(e => e.email === addr)) all.push({ email: addr, at: new Date().toISOString().slice(0, 10) });
+  try { localStorage.setItem(MAIL, JSON.stringify(all)); return true; } catch (e) { return false; }
+}
+
 export function exportFile() {
   const cards = load();
-  const data = { booth: "Prediction Booth", version: 2, scale: BOOTH.steps, exported: new Date().toISOString(), cards };
+  const data = { booth: "Prediction Booth", version: 2, scale: BOOTH.steps, exported: new Date().toISOString(), cards, emails: loadEmails() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -82,11 +101,12 @@ export async function importFile(file) {
   });
   all.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
   if (!save(all)) throw new Error("The browser refused to save.");
+  if (Array.isArray(data.emails)) data.emails.forEach(e => e && addEmail(e.email));
   return { added, skipped };
 }
 
 export function clear() {
-  try { localStorage.removeItem(KEY); } catch (e) {}
+  try { localStorage.removeItem(KEY); localStorage.removeItem(MAIL); } catch (e) {}
 }
 
 export const pref = {

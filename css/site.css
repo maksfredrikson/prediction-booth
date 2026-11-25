@@ -110,8 +110,8 @@ button, input { font: inherit; color: inherit; }
 .form { max-width: 640px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label, .field .legend { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.field input[type="text"] { width: 100%; min-height: 52px; padding: 0; font-size: 18px; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; }
-.field input[type="text"]:focus { outline: 0; border-bottom-width: 3px; }
+.field input[type="text"], .field input[type="email"] { width: 100%; min-height: 52px; padding: 0; font-size: 18px; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; }
+.field input[type="text"]:focus, .field input[type="email"]:focus { outline: 0; border-bottom-width: 3px; }
 .tick { display: flex; align-items: flex-start; gap: 14px; cursor: pointer; }
 .tick input { appearance: none; -webkit-appearance: none; flex: none; width: 22px; height: 22px; margin: 1px 0 0; border: 1.5px solid var(--ink); border-radius: 0; background: transparent; cursor: pointer; display: grid; place-items: center; }
 .tick input[type="radio"] { border-radius: 50%; }

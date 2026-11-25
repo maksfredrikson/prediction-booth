@@ -4,7 +4,7 @@ import { BOOTH as B } from "./content.js";
 import { compose, titleOf } from "./compose.js";
 import { el, legend, rowNames } from "./dots.js";
 import { patternNamed, poles, stepSentence, stepLabels } from "./pattern.js";
-import { load, exportFile, importFile, clear, pref } from "./store.js";
+import { load, loadEmails, exportFile, importFile, clear, pref } from "./store.js";
 import { INVENTED } from "./invented.js";
 import { receiptLines, armPrint, disarmPrint, marksRow, yearsRows, wrap, W } from "./receipt.js";
 
@@ -175,9 +175,9 @@ dialog.addEventListener("click", e => { if (e.target === dialog) dialog.close();
 const status = t => { $("data-status").textContent = t; };
 showBox.addEventListener("change", () => { pref.set("show-invented", showBox.checked ? "1" : "0"); refresh(); });
 $("export").addEventListener("click", () => {
-  if (!real.length) { status("There are no real cards here to save yet. The invented ones are not saved."); return; }
+  if (!real.length && !loadEmails().length) { status("There are no real cards or emails here to save yet. The invented ones are not saved."); return; }
   const n = exportFile();
-  status(n + (n === 1 ? " card" : " cards") + " saved to a file in your downloads.");
+  status(n + (n === 1 ? " card" : " cards") + " and " + loadEmails().length + " email addresses saved to a file in your downloads.");
 });
 $("import").addEventListener("click", () => $("import-file").click());
 $("import-file").addEventListener("change", async e => {
@@ -191,8 +191,8 @@ $("import-file").addEventListener("change", async e => {
   } catch (err) { status("That file could not be read as cards. " + (err.message || "")); }
 });
 $("clear").addEventListener("click", () => {
-  if (!real.length) { status("There are no real cards here."); return; }
-  if (!confirm("Delete all " + real.length + " real cards kept in this browser? This cannot be undone. Save them to a file first if you need them.")) return;
+  if (!real.length && !loadEmails().length) { status("There are no real cards or emails here."); return; }
+  if (!confirm("Delete all " + real.length + " real cards and " + loadEmails().length + " email addresses kept on this device? This cannot be undone. Save them to a file first if you need them.")) return;
   clear();
   status("Deleted.");
   refresh();

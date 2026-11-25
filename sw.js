@@ -1,10 +1,10 @@
 // Offline cache. Network first, so a new version shows at once when online;
 // the cached copy answers when the network is off or slow.
-const CACHE = "prediction-booth-v16";
+const CACHE = "prediction-booth-v17";
 const ASSETS = [
   "./", "index.html", "survey.html", "scenarios.html", "about.html", "explore.html", "css/site.css",
   "js/content.js", "js/compose.js", "js/dots.js", "js/pattern.js", "js/scale.js", "js/store.js", "js/receipt.js",
-  "js/chrome.js", "js/survey.js", "js/explore.js", "js/scenarios.js", "js/about.js", "js/invented.js"
+  "js/chrome.js", "js/survey.js", "js/explore.js", "js/scenarios.js", "js/invented.js"
 ];
 
 self.addEventListener("install", e => {

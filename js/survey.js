@@ -5,13 +5,13 @@ import { BOOTH as B } from "./content.js";
 import { complete } from "./compose.js";
 import { el } from "./dots.js";
 import { createScale } from "./scale.js";
-import { add, pref } from "./store.js";
+import { add, addEmail, validEmail, pref } from "./store.js";
 import { receiptParts, receiptView, armPrint, disarmPrint } from "./receipt.js";
 
 const screen = document.getElementById("screen");
 const fresh = () => ({
   today: [null, null, null, null], prediction: [null, null, null, null], years: null,
-  because: "", lived: null, consent: null, paper: ""
+  because: "", lived: null, consent: null, paper: "", email: ""
 });
 let state = fresh();
 
@@ -164,18 +164,23 @@ function lastScreen() {
   const because = field("w-because", "I predict this because (one line, if you like)", 120, state.because);
   const paper = field("w-paper", "Paper card number, if you hold one", 3, state.paper);
   paper.i.inputMode = "numeric";
-  const keep = () => { state.because = because.i.value; state.paper = paper.i.value; };
+  const email = field("w-email", "Email (optional)", 120, state.email);
+  email.i.type = "email"; email.i.inputMode = "email"; email.i.autocomplete = "email";
+  const keep = () => { state.because = because.i.value; state.paper = paper.i.value; state.email = email.i.value.trim(); };
 
   const give = button("Donate my view", "btn", "", () => { keep(); donate(); });
   const hint = el("p", "note");
   const ready = () => {
-    give.disabled = state.consent == null;
-    hint.textContent = state.consent == null ? "Answer the consent question to donate."
+    const badMail = email.i.value.trim() !== "" && !validEmail(email.i.value);
+    give.disabled = state.consent == null || badMail;
+    hint.textContent = badMail ? "That email does not look complete. Fix it or clear the field."
+      : state.consent == null ? "Answer the consent question to donate."
       : state.consent ? "Ready. Shown without your name: there is no name to show."
       : "Ready. Your view still counts at the booth; it will not appear in the publication.";
   };
   const actions = el("div", "actions");
   actions.append(give, button("Back", "linkbtn", "back", () => { keep(); go(pos - 1); }));
+  email.i.addEventListener("input", ready);
   ready();
 
   mount(stack("stack--l wide",
@@ -188,18 +193,23 @@ function lastScreen() {
       stack("stack--s", el("div", "kicker", "Optional"), el("h2", "big big--s", "Tip your data"),
         el("p", "muted", "Like a tip on a bill: one more answer, only if you want to give it. It helps read the cards together.")),
       choices(B.lived.q, B.lived.options, state.lived, v => { state.lived = v; }, true)),
+    stack("",
+      stack("stack--s", el("div", "kicker", "Optional"), el("h2", "big big--s", "Stay in the loop"),
+        el("p", "muted", "Leave an email to get the results of the booth and news about this research. It is kept apart from your answers.")),
+      stack("form", email.f)),
     stack("form", paper.f),
-    stack("stack--s", el("p", "note", "The booth keeps your marks, your consent answer, and whatever you add here. Never your name or a contact detail: please leave them out."), hint),
+    stack("stack--s", el("p", "note", "The booth keeps your marks, your consent answer, and whatever you add here. Never your name."), hint),
     actions));
 }
 
 function donate() {
   if (!complete(state) || state.consent == null) { go(0); return; }
   const no = parseInt(state.paper, 10);
-  const saved = add({ ...state, no: Number.isInteger(no) && no > 0 ? no : null });
+  const saved = add({ ...state, no: Number.isInteger(no) && no > 0 ? no : null });   // the card never holds the email
+  const mailed = state.email ? addEmail(state.email) : false;
   const card = saved || { ...state, at: new Date().toISOString() };
   state = fresh();
-  showResult(card, saved ? { saved: true } : { saved: false, label: "NOT SAVED", title: "Your view", note: "This browser refused to save the answer, so it is shown once and not kept." });
+  showResult(card, saved ? { saved: true, mailed } : { saved: false, label: "NOT SAVED", title: "Your view", note: "This browser refused to save the answer, so it is shown once and not kept." });
 }
 
 // ---- the receipt: its own screen, one unbroken strip ---------------------------------
@@ -224,7 +234,7 @@ function showResult(card, meta) {
 
   const paper = el("div", "paper");
   const fill = () => {
-    const parts = receiptParts(card, { label: meta.saved ? null : (meta.label || "EXAMPLE - NOT SAVED"), boothCopy: copyBox.checked });
+    const parts = receiptParts(card, { label: meta.saved ? null : (meta.label || "EXAMPLE - NOT SAVED"), boothCopy: copyBox.checked, mailed: meta.mailed });
     paper.textContent = "";
     paper.appendChild(receiptView(parts));
     armPrint(parts.map(p => p.t));
@@ -251,7 +261,7 @@ function showResult(card, meta) {
   const info = el("details", "info");
   info.append(el("summary", "", "How this text is made"));
   const why = el("p", "", "The text on the receipt is put together from sentences written in advance: one for each step you chose, and a line on what your biggest move costs. ");
-  why.append(link("about.html#how", "See every sentence"), ".");
+  why.append(link("about.html#how", "The three rules"), ".");
   info.append(why);
 
   mount(stack("stack--l", top, stack("stack--s", info, paper, copy)));

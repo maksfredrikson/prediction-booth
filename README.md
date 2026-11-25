@@ -28,7 +28,7 @@ network off.
 | Landing and Explore | `index.html`, `js/explore.js` | One scrolling page. On top: the invitation to the survey. Below: a row of time frames that filters everything under it, the field (a bar chart per question, today up and prediction down, with the group's average move), the roll (every card in order of arrival). Saving cards to a file and adding cards from a file are hidden from visitors: open `index.html#data`. |
 | Survey | `survey.html`, `js/survey.js` | Made for touch. First the time frame (5, 10, 15, 20 or 25 years). Then four questions on a five-step scale, each on two lines: today and the prediction; the meaning of a chosen step shows under its line. Then one last step: consent (required), one line of reasoning and a "tip" of data (how long they have lived in the Netherlands), both optional. Then the receipt on its own screen. |
 | Scenarios | `scenarios.html`, `js/scenarios.js` | The five ready-made predictions from the content file, chosen with a row of chips at the top: two scenarios from the zine, and the two edges and the middle of the scale. Each can be opened as an example receipt. |
-| About | `about.html`, `js/about.js` | Opens on "ornament is not decoration" and the towel story, then the three questions of the research as a table, then every sentence the scenario text can be made of. |
+| About | `about.html` | Opens on "ornament is not decoration" and the towel story, then the three questions of the research as a table, the three rules behind the scenario text, and a data policy, a disclaimer and terms of use in plain words. |
 
 ## Look
 
@@ -66,6 +66,7 @@ Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 
 ## What is kept
 
 Marks, the time frame, the consent answer, and what a visitor chooses to add: one line of
-reasoning and a tip of data (how long they have lived in the Netherlands). Never a name or a
-contact detail.
+reasoning and a tip of data (how long they have lived in the Netherlands). Never a name.
+An optional email address is kept as a list of its own, never attached to a card. Right now it
+stays on the device it was typed on, like the cards: nothing sends it anywhere yet.
 Cards carry their scale; cards from the earlier seven-step version are never mixed in.
