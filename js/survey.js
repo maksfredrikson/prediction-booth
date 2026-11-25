@@ -8,6 +8,10 @@ import { createScale } from "./scale.js";
 import { add, addEmail, validEmail, pref } from "./store.js";
 import { receiptParts, receiptView, armPrint, disarmPrint } from "./receipt.js";
 
+// Until the site has a store of its own (planned with the move to other hosting), an email
+// typed here stays on the device. The sign-up says so. Set to true once addresses are delivered.
+const EMAILS_CONNECTED = false;
+
 const screen = document.getElementById("screen");
 const fresh = () => ({
   today: [null, null, null, null], prediction: [null, null, null, null], years: null,
@@ -195,7 +199,8 @@ function lastScreen() {
       choices(B.lived.q, B.lived.options, state.lived, v => { state.lived = v; }, true)),
     stack("",
       stack("stack--s", el("div", "kicker", "Optional"), el("h2", "big big--s", "Stay in the loop"),
-        el("p", "muted", "Leave an email to get the results of the booth and news about this research. It is kept apart from your answers.")),
+        el("p", "muted", "Leave an email to get the results of the booth and news about this research. It is kept apart from your answers."),
+        EMAILS_CONNECTED ? null : el("p", "note", "Prototype: this sign-up is not connected yet. For now your address stays on this device.")),
       stack("form", email.f)),
     stack("form", paper.f),
     stack("stack--s", el("p", "note", "The booth keeps your marks, your consent answer, and whatever you add here. Never your name."), hint),
