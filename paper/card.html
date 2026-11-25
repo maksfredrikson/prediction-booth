@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prediction Booth card</title>
+<!--
+  Prediction card for the ThingsCon booth .
+  A6 portrait, four to an A4 sheet, fronts on one page and backs on the next.
+  Print double-sided, flip on the LONG edge, 100% scale, no margins added by the printer dialog.
+  Stickers: big 13 mm (today), small 8 mm (prediction, and one on the years row).
+  URL parameters: ?from=1&count=120   (count is rounded up to a multiple of 4)
+  Text of the axes, steps and questions lives in ../js/content.js (shared with the site).
+  Open it through the local server (see README), not by double-clicking the file.
+-->
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; color: #111; }
+  body { font-family: Georgia, "Times New Roman", serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sheet { width: 210mm; height: 297mm; display: grid; grid-template-columns: 105mm 105mm; grid-template-rows: 148.5mm 148.5mm; page-break-after: always; break-after: page; position: relative; overflow: hidden; }
+  .sheet::before, .sheet::after { content: ""; position: absolute; background: none; }
+  .sheet::before { left: 105mm; top: 0; height: 297mm; border-left: 0.2mm dashed #bbb; }
+  .sheet::after { top: 148.5mm; left: 0; width: 210mm; border-top: 0.2mm dashed #bbb; }
+  .card { width: 105mm; height: 148.5mm; padding: 7mm; display: flex; flex-direction: column; }
+
+  /* front */
+  .head { display: flex; justify-content: space-between; align-items: flex-start; height: 10.5mm; }
+  .title { font-size: 13pt; line-height: 1.05; letter-spacing: 0.01em; }
+  .title small { display: block; font-size: 7.5pt; color: #444; margin-top: 0.8mm; font-style: italic; }
+  .no { font-family: ui-monospace, Menlo, monospace; font-size: 9pt; text-align: right; line-height: 1.2; }
+  .no small { display: block; font-size: 5.5pt; color: #666; }
+  .legend { display: flex; gap: 3.5mm; align-items: center; font-size: 6pt; color: #333; height: 5mm; margin-bottom: 1.5mm; font-family: Helvetica, Arial, sans-serif; }
+  .legend span { display: inline-flex; align-items: center; gap: 1mm; }
+  .lg-big { width: 4.2mm; height: 4.2mm; border-radius: 50%; background: #111; display: inline-block; }
+  .lg-small { width: 2.6mm; height: 2.6mm; border-radius: 50%; background: #111; display: inline-block; }
+  .axis { height: 23.6mm; }
+  .q { font-size: 8.2pt; line-height: 1.15; height: 5mm; }
+  .dots { display: flex; justify-content: space-between; width: 91mm; }
+  .ring { width: 11.5mm; height: 11.5mm; border-radius: 50%; border: 0.22mm solid #9a9a9a; display: flex; align-items: center; justify-content: center; font-family: Helvetica, Arial, sans-serif; font-size: 5.5pt; color: #b5b5b5; }
+  .poles { display: flex; justify-content: space-between; font-family: Helvetica, Arial, sans-serif; font-size: 5.8pt; line-height: 1.2; color: #333; margin-top: 0.9mm; }
+  .poles div { width: 40mm; }
+  .poles div:last-child { text-align: right; }
+  .time { height: auto; }
+  .tlabels { display: flex; justify-content: space-between; width: 91mm; font-family: Helvetica, Arial, sans-serif; font-size: 5.8pt; color: #333; margin-top: 0.9mm; }
+  .tlabels div { width: 11.5mm; text-align: center; white-space: nowrap; }
+
+  /* back */
+  .back { font-size: 8.2pt; line-height: 1.3; }
+  .back h2 { font-size: 8.2pt; font-weight: normal; margin: 0 0 1mm 0; }
+  .line { border-bottom: 0.2mm solid #777; height: 7.5mm; }
+  .block { margin-bottom: 5mm; }
+  .ticks { font-family: Helvetica, Arial, sans-serif; font-size: 6.6pt; line-height: 1.35; }
+  .ticks p { margin: 0 0 1.6mm 0; display: flex; gap: 1.6mm; align-items: flex-start; }
+  .box { flex: none; width: 2.8mm; height: 2.8mm; border: 0.22mm solid #111; display: inline-block; margin-top: 0.2mm; }
+  .inline { display: inline-flex; gap: 1.2mm; align-items: center; margin-right: 3mm; }
+  .talk { margin-top: auto; border-top: 0.2mm solid #111; padding-top: 2.5mm; }
+  .talk h2 { font-style: italic; margin-bottom: 1.5mm; }
+  .talk ol { margin: 0; padding-left: 4.2mm; font-size: 7.6pt; line-height: 1.3; }
+  .talk li { margin-bottom: 1mm; }
+  .foot { display: flex; justify-content: space-between; font-family: ui-monospace, Menlo, monospace; font-size: 5.5pt; color: #555; margin-top: 3mm; }
+
+  @media screen {
+    body { background: #ddd; }
+    .sheet { background: #fff; margin: 8mm auto; box-shadow: 0 1mm 4mm rgba(0,0,0,.25); }
+  }
+</style>
+</head>
+<body>
+<script type="module">
+  import { BOOTH } from "../js/content.js";
+  window.BOOTH = BOOTH;
+  const AXES = window.BOOTH.axes;
+  const TIME = window.BOOTH.time;
+  const TALK = window.BOOTH.talk;
+
+  const params = new URLSearchParams(location.search);
+  const from = Math.max(1, parseInt(params.get("from") || "1", 10));
+  const count = Math.ceil(Math.max(1, parseInt(params.get("count") || "120", 10)) / 4) * 4;
+  const pad = n => String(n).padStart(3, "0");
+
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+  function front(n) {
+    const c = el("div", "card");
+    const head = el("div", "head");
+    const title = el("div", "title", window.BOOTH.title);
+    title.appendChild(el("small", "", "the Netherlands today, and where it is heading"));
+    const no = el("div", "no", "No " + pad(n));
+    no.appendChild(el("small", "", "1 = left · 7 = right"));
+    head.append(title, no);
+    c.appendChild(head);
+
+    const lg = el("div", "legend");
+    const a = el("span"); a.append(el("i", "lg-big"), document.createTextNode("big: today"));
+    const b = el("span"); b.append(el("i", "lg-small"), document.createTextNode("small: where it is heading"));
+    lg.append(a, b);
+    c.appendChild(lg);
+
+    AXES.forEach(ax => {
+      const row = el("div", "axis");
+      row.appendChild(el("div", "q", ax.q));
+      const dots = el("div", "dots");
+      for (let i = 1; i <= 7; i++) dots.appendChild(el("div", "ring", String(i)));
+      row.appendChild(dots);
+      const poles = el("div", "poles");
+      poles.append(el("div", "", ax.l), el("div", "", ax.r));
+      row.appendChild(poles);
+      c.appendChild(row);
+    });
+
+    const t = el("div", "axis time");
+    t.appendChild(el("div", "q", TIME.q));
+    const tdots = el("div", "dots");
+    for (let i = 1; i <= 7; i++) tdots.appendChild(el("div", "ring", String(i)));
+    t.appendChild(tdots);
+    const tp = el("div", "poles");
+    tp.append(el("div", "", TIME.l), el("div", "", TIME.r));
+    t.appendChild(tp);
+    c.appendChild(t);
+    return c;
+  }
+
+  function tick(text) { const p = el("p"); p.append(el("i", "box"), el("span", "", text)); return p; }
+
+  function back(n) {
+    const c = el("div", "card back");
+    const b1 = el("div", "block"); b1.append(el("h2", "", "Give your prediction a name"), el("div", "line")); c.appendChild(b1);
+    const b2 = el("div", "block"); b2.append(el("h2", "", "I predict this because"), el("div", "line"), el("div", "line")); c.appendChild(b2);
+
+    const ticks = el("div", "ticks");
+    const role = el("p");
+    role.appendChild(el("span", "", "I work as"));
+    ["designer", "engineer", "other"].forEach(r => { const s = el("span", "inline"); s.append(el("i", "box"), document.createTextNode(r)); role.appendChild(s); });
+    ticks.appendChild(role);
+    ticks.appendChild(tick("I live in the Netherlands."));
+    ticks.appendChild(tick("A photo of this card and my words may be shown, without my name, in a master's research publication."));
+    c.appendChild(ticks);
+
+    const talk = el("div", "talk");
+    talk.appendChild(el("h2", "", "To keep talking, with someone whose card looks like yours or nothing like it"));
+    const ol = el("ol");
+    TALK.forEach(q => ol.appendChild(el("li", "", q)));
+    talk.appendChild(ol);
+    const foot = el("div", "foot");
+    foot.append(el("span", "", "No " + pad(n)), el("span", "", window.BOOTH.title + " · master's research"));
+    talk.appendChild(foot);
+    c.appendChild(talk);
+    return c;
+  }
+
+  for (let s = 0; s < count / 4; s++) {
+    const n = from + s * 4;
+    const f = el("div", "sheet");
+    [n, n + 1, n + 2, n + 3].forEach(k => f.appendChild(front(k)));
+    document.body.appendChild(f);
+    const b = el("div", "sheet");
+    // columns swapped so each back lands behind its own front when flipped on the long edge
+    [n + 1, n, n + 3, n + 2].forEach(k => b.appendChild(back(k)));
+    document.body.appendChild(b);
+  }
+</script>
+</body>
+</html>
