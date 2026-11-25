@@ -105,10 +105,10 @@ export function receiptParts(card, opts = {}) {
   add("1 x view of today");
   add("1 x prediction");
   if (card.because) all(wrap('1 x reason: "' + card.because + '"', W, "  "));
-  if (card.role || typeof card.livesNL === "boolean") {
+  const lived = card.lived && B.lived.options.find(o => o[0] === card.lived);
+  if (lived) {
     add("TIP (your data)");
-    if (card.role) add("+ work: " + card.role);
-    if (typeof card.livesNL === "boolean") add("+ lives in the Netherlands: " + (card.livesNL ? "yes" : "no"));
+    all(wrap("+ in the Netherlands: " + lived[1].toLowerCase(), W, "  "));
   }
   add(lr("PAID", "EUR 0.00"));
   add("");

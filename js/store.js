@@ -26,8 +26,7 @@ export function clean(c) {
     scale: BOOTH.steps,
     years: c.years,
     because: str(c.because, 120),
-    role: ["designer", "engineer", "other"].includes(c.role) ? c.role : null,
-    livesNL: typeof c.livesNL === "boolean" ? c.livesNL : null,
+    lived: BOOTH.lived.options.some(o => o[0] === c.lived) ? c.lived : null,
     consent: c.consent === true
   };
 }

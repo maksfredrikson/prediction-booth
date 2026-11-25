@@ -86,6 +86,8 @@ button, input { font: inherit; color: inherit; }
 .chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); background: transparent; cursor: pointer; text-decoration: none; }
 .chip:hover { border-color: var(--ink); }
 .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.chip[disabled] { opacity: .35; cursor: default; }
+.chip { white-space: pre; }
 
 .choices { display: flex; flex-wrap: wrap; gap: 12px; }
 .choice { display: inline-flex; align-items: center; gap: 14px; min-height: 56px; padding: 0 24px; border: 1px solid var(--ink); background: transparent; cursor: pointer; font-size: 16px; text-align: left; }
@@ -182,14 +184,15 @@ button, input { font: inherit; color: inherit; }
 /* ---- explore ----------------------------------------------------------------- */
 .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 56px 64px; }
 .chart__name { font-weight: 700; min-height: 3.1em; }
-.chart__cap { min-height: 5.6em; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.chart__cap { min-height: 4.2em; margin-top: 12px; font-size: 13px; color: var(--muted); }
 .chart__cap b { color: var(--ink); font-weight: 400; }
 .bars { --up: 72px; --down: 72px; display: grid; grid-template-columns: repeat(var(--n, 7), minmax(0, 1fr)); position: relative; }
 .bars--time { --up: 0px; }
 .bars::before { content: ""; position: absolute; left: 0; right: 0; top: calc(var(--up) + 1.55em); border-top: 1px solid var(--ink); }
 .bcell { display: grid; grid-template-rows: calc(var(--up) + 1.55em) calc(var(--down) + 1.55em); justify-items: center; border: 0; background: none; padding: 0; cursor: pointer; font-size: 13px; }
 .bars--time .bcell { grid-template-rows: 1.55em calc(var(--down) + 1.55em); }
-.bcell:hover, .bcell.is-on { background: var(--soft); }
+.bcell.is-on { background: var(--soft); }
+@media (hover: hover) { .bcell:hover { background: var(--soft); } }
 .bup, .bdown { display: flex; flex-direction: column; align-items: center; }
 .bup { justify-content: flex-end; }
 .bup i { width: 24px; height: calc(var(--up) * var(--s)); border: 1px solid var(--ink); border-bottom: 0; background: var(--ht) 0 0 / 5px 5px, var(--ht) 2.5px 2.5px / 5px 5px; }

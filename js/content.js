@@ -88,6 +88,18 @@ export const BOOTH = {
     { name: "C · Federated agentic state", pred: [4, 4, 4, 4], src: "zine",
       text: "Identity is scalable. The ornament as civic infrastructure. Meaning as a menu item. The world when participation becomes extraction." }
   ],
+  // An optional extra on the site ("tip your data"): how long the visitor has lived in the
+  // country, as a spectrum. [value kept with the card, label shown]
+  lived: {
+    q: "I live in the Netherlands",
+    options: [
+      ["no", "Not living here"],
+      ["lt1", "Less than 1 year"],
+      ["1to5", "1 to 5 years"],
+      ["gt5", "More than 5 years"],
+      ["born", "Born and living here"]
+    ]
+  },
   talk: [
     "Who helped you last: a person or a system?",
     "What would make a newcomer belong here by then?",

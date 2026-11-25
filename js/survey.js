@@ -1,6 +1,6 @@
 // Survey, made for touch. It opens on the time frame, then asks four questions, each on
 // two lines (today and the prediction), then one last step: consent, an optional reason and
-// an optional tip of data about the visitor. The receipt follows on its own screen. One clear action per screen.
+// an optional tip of data: how long the visitor has lived in the Netherlands. The receipt follows on its own screen. One clear action per screen.
 import { BOOTH as B } from "./content.js";
 import { complete } from "./compose.js";
 import { el } from "./dots.js";
@@ -11,7 +11,7 @@ import { receiptParts, receiptView, armPrint, disarmPrint } from "./receipt.js";
 const screen = document.getElementById("screen");
 const fresh = () => ({
   today: [null, null, null, null], prediction: [null, null, null, null], years: null,
-  because: "", role: null, livesNL: null, consent: null, paper: ""
+  because: "", lived: null, consent: null, paper: ""
 });
 let state = fresh();
 
@@ -186,9 +186,8 @@ function lastScreen() {
     stack("form", because.f),
     stack("",
       stack("stack--s", el("div", "kicker", "Optional"), el("h2", "big big--s", "Tip your data"),
-        el("p", "muted", "Like a tip on a bill: two more answers, only if you want to give them. They help read the cards together.")),
-      choices("I work as", [["designer", "a designer"], ["engineer", "an engineer"], ["other", "something else"]], state.role, v => { state.role = v; }, true),
-      choices("I live in the Netherlands", [[true, "Yes"], [false, "No"]], state.livesNL, v => { state.livesNL = v; }, true)),
+        el("p", "muted", "Like a tip on a bill: one more answer, only if you want to give it. It helps read the cards together.")),
+      choices(B.lived.q, B.lived.options, state.lived, v => { state.lived = v; }, true)),
     stack("form", paper.f),
     stack("stack--s", el("p", "note", "The booth keeps your marks, your consent answer, and whatever you add here. Never your name or a contact detail: please leave them out."), hint),
     actions));

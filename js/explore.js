@@ -24,53 +24,89 @@ function refresh() {
   counts.textContent = "";
   counts.append(real.length === 0 ? "No real cards in this browser yet. " : real.length + (real.length === 1 ? " real card" : " real cards") + " in this browser. ");
   if (showBox.checked) counts.append(el("span", "tag", "invented"), " " + INVENTED.length + " cards are made up, so the page is not empty before the booth has visitors.");
+  periods();
   field();
   roll();
+}
+
+// ---- "How soon" is the way through Explore: all cards, or one time frame ------------
+let period = 0;   // 0 = all cards, 1-5 = a step on the time frame
+const shown = () => (period ? cards.filter(c => c.years === period) : cards);
+const mean = (list, f) => (list.length ? list.reduce((s, c) => s + f(c), 0) / list.length : 0);
+const signed = v => (v > 0.04 ? "+" : v < -0.04 ? "-" : "") + Math.abs(v).toFixed(1);
+
+function periods() {
+  const box = $("periods");
+  box.textContent = "";
+  if (period && !cards.some(c => c.years === period)) period = 0;
+  const chip = (k, text, n) => {
+    const b = el("button", "chip", text + "  " + n);
+    b.type = "button";
+    b.setAttribute("aria-pressed", k === period ? "true" : "false");
+    b.disabled = n === 0;
+    b.addEventListener("click", () => { period = k; periods(); field(); roll(); });
+    box.appendChild(b);
+  };
+  chip(0, "All", cards.length);
+  B.time.labels.forEach((l, k) => chip(k + 1, l + " years", cards.filter(c => c.years === k + 1).length));
+  const n = shown().length;
+  $("period-note").textContent = period
+    ? "Showing " + n + " of " + cards.length + " cards: predictions for " + B.time.phrases[period - 1].replace(/^in /, "") + " from now."
+    : "Showing all " + cards.length + " cards. Choose a time frame to see how near and far predictions differ.";
 }
 
 // ---- the field: per question, bars up for today and bars down for the prediction ----
 function field() {
   const box = $("field");
   box.textContent = "";
-  if (!cards.length) { box.append(el("p", "muted", "No cards to show. Answer the survey, or switch the invented cards on.")); return; }
-  const counts = rowNames.map((_, r) => Array.from({ length: stepLabels(r).length }, () => ({ t: 0, p: 0 })));
-  cards.forEach(c => {
+  const list = shown();
+  if (!list.length) { box.append(el("p", "muted", "No cards to show. Answer the survey, or switch the invented cards on.")); return; }
+  const counts = B.axes.map(() => Array.from({ length: B.steps }, () => ({ t: 0, p: 0 })));
+  list.forEach(c => {
     c.today.forEach((v, a) => counts[a][v - 1].t++);
     c.prediction.forEach((v, a) => counts[a][v - 1].p++);
-    counts[4][c.years - 1].p++;
   });
   const max = Math.max(1, ...counts.flat().map(x => Math.max(x.t, x.p)));
 
   counts.forEach((cells, r) => {
     const chart = el("div", "chart");
     const name = el("div", "chart__name", (r + 1) + " " + rowNames[r]);
-    const bars = el("div", "bars" + (r === 4 ? " bars--time" : ""));
+    const bars = el("div", "bars");
     bars.style.setProperty("--n", cells.length);
     const cap = el("div", "chart__cap");
     cap.setAttribute("aria-live", "polite");
+    // what the group does on this question, and how that differs from all cards
+    const t = mean(list, c => c.today[r]), p = mean(list, c => c.prediction[r]);
+    const all = mean(cards, c => c.prediction[r] - c.today[r]);
+    const summary = () => {
+      cap.textContent = "";
+      cap.append(el("b", "", "On average: today " + t.toFixed(1) + ", prediction " + p.toFixed(1) + ", a move of " + signed(p - t) + " steps."));
+      if (period) cap.append(document.createElement("br"), "All cards together move " + signed(all) + ".");
+    };
     cells.forEach((x, k) => {
       const b = el("button", "bcell");
       b.type = "button";
-      b.setAttribute("aria-label", "Step " + (k + 1) + ": " + (r === 4 ? "" : "today " + x.t + ", ") + "prediction " + x.p);
+      b.setAttribute("aria-label", "Step " + (k + 1) + ": today " + x.t + ", prediction " + x.p);
       const up = el("span", "bup"), down = el("span", "bdown");
-      if (r !== 4 && x.t > 0) { const i = el("i"); i.style.setProperty("--s", x.t / max); up.append(el("b", "", String(x.t)), i); }
+      if (x.t > 0) { const i = el("i"); i.style.setProperty("--s", x.t / max); up.append(el("b", "", String(x.t)), i); }
       if (x.p > 0) { const i = el("i"); i.style.setProperty("--s", x.p / max); down.append(i, el("b", "", String(x.p))); }
       b.append(up, down);
       const show = () => {
+        const on = b.classList.contains("is-on");
         bars.querySelectorAll(".is-on").forEach(n => n.classList.remove("is-on"));
+        if (on) { summary(); return; }   // tapping the chosen step again brings the average back
         b.classList.add("is-on");
         cap.textContent = "";
-        cap.append(el("b", "", (r === 4 ? "" : "Step " + (k + 1) + ": ") + stepSentence(r, k + 1)), document.createElement("br"),
-          r === 4 ? "Predicted by " + people(x.p) + "." : "Today: " + people(x.t) + ". Prediction: " + people(x.p) + ".");
+        cap.append(el("b", "", "Step " + (k + 1) + ": " + stepSentence(r, k + 1)), document.createElement("br"),
+          "Today: " + people(x.t) + ". Prediction: " + people(x.p) + ".");
       };
-      b.addEventListener("mouseenter", show);
-      b.addEventListener("focus", show);
       b.addEventListener("click", show);
       bars.appendChild(b);
     });
     const nums = el("div", "bnums");
     nums.style.setProperty("--n", cells.length);
     stepLabels(r).forEach(l => nums.appendChild(el("span", "", l)));
+    summary();
     chart.append(name, bars, nums, poles(r), cap);
     box.appendChild(chart);
   });
@@ -80,8 +116,9 @@ function field() {
 function roll() {
   const box = $("roll");
   box.textContent = "";
-  if (!cards.length) { box.append(el("p", "muted", "The roll is empty.")); return; }
-  cards.forEach(c => {
+  const list = shown();
+  if (!list.length) { box.append(el("p", "muted", "The roll is empty.")); return; }
+  list.forEach(c => {
     const b = el("button", "rollcard");
     b.type = "button";
     const lines = [c.invented ? "INVENTED" : "No " + pad3(c.no || 0), ...wrap(titleOf(c), W), "",
