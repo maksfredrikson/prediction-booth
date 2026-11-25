@@ -1,5 +1,5 @@
-// Dots: the pattern of five rows of seven, the same layout as the paper card.
-// Big dot = today (the big sticker), small dot on top = prediction (the small sticker).
+// Dots: big halftone dot = today (the big sticker), small solid dot on top = prediction
+// (the small sticker). Used by the scale and by the labelled pattern.
 import { BOOTH as B } from "./content.js";
 
 export const el = (tag, cls, text) => {
@@ -21,42 +21,6 @@ export function dotsRow(today, pred) {
   const row = el("div", "dots");
   for (let i = 1; i <= 7; i++) row.appendChild(dot(today === i, pred === i));
   return row;
-}
-
-// card = { today: [..4], prediction: [..4], years } ; values may be null while answering
-const rowsOf = card => [
-  ...B.axes.map((_, a) => [card.today[a], card.prediction[a]]),
-  [null, card.years]
-];
-
-export function patternMini(card, nowRow) {
-  const p = el("div", "pattern pattern--mini");
-  p.setAttribute("role", "img");
-  p.setAttribute("aria-label", "Pattern: " + describe(card));
-  rowsOf(card).forEach(([t, pr], i) => {
-    const r = dotsRow(t, pr);
-    if (i === nowRow) r.classList.add("is-now");
-    p.appendChild(r);
-  });
-  return p;
-}
-
-// Rows with the question on the left and the dots on the right.
-export function patternNamed(card) {
-  const frag = document.createDocumentFragment();
-  rowsOf(card).forEach(([t, pr], i) => {
-    const row = el("div", "prow");
-    const name = el("div", "prow__name");
-    name.append(el("b", "", String(i + 1) + " "), document.createTextNode(rowNames[i]));
-    row.append(name, dotsRow(t, pr));
-    frag.appendChild(row);
-  });
-  return frag;
-}
-
-export function describe(card) {
-  const v = x => (x == null ? "-" : x);
-  return "today " + card.today.map(v).join(" ") + ", prediction " + card.prediction.map(v).join(" ") + ", years " + v(card.years);
 }
 
 export function legend() {

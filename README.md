@@ -22,9 +22,17 @@ network off.
 
 | Page | File | What it does |
 |---|---|---|
-| Survey | `index.html`, `js/survey.js` | One question per screen: today, then the prediction, on the same seven-step scale. Then the years, a name and one line. Ends with the pattern, the scenario text and the receipt. |
-| Explore | `explore.html`, `js/explore.js` | The field (how many people chose each step) and the roll (every card in order of arrival). Save cards to a file, add cards from a file. |
+| Survey | `index.html`, `js/survey.js` | One question per screen: today, then the prediction, on the same seven-step scale. Then the years, a name and one line. The receipt in the left column fills in while you answer and each of its rows jumps to that question. |
+| Explore | `explore.html`, `js/explore.js` | The field (a bar chart per question: today up, prediction down) and the roll (every card in order of arrival, as one strip). Save cards to a file, add cards from a file. |
 | About | `about.html`, `js/about.js` | The towel story, then every sentence the scenario text can be made of. |
+
+## Look
+
+The whole interface follows the receipt: one monospace size, packed narrow columns, rules
+made of = and -, ink on paper. Two framed panels sit side by side with a menu bar above and a
+bar of keys below. Today is a big halftone dot, the prediction a small solid dot.
+
+Keys on the Survey page: Enter = next, Esc = back, 1 to 7 = choose a step, P = print.
 
 ## Where things live
 
@@ -34,7 +42,8 @@ network off.
 - `js/compose.js` assembles the scenario text from the chosen steps. No AI, no network.
 - `js/receipt.js` builds the receipt: 32 characters per line, plain ASCII, for a 58 mm thermal
   printer. It prints through the browser's print dialog.
-- `js/scale.js` is the seven-dot control; `js/dots.js` draws the pattern of five rows of seven.
+- `js/scale.js` is the seven-dot control; `js/pattern.js` draws an answer as five labelled rows
+  (question, step numbers and the two end labels on every row).
 - `js/store.js` keeps answers in the browser (localStorage) and handles the JSON file.
 - `js/invented.js` holds made-up cards so Explore is not empty before there are visitors. The
   page labels them as invented.

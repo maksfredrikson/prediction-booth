@@ -5,7 +5,7 @@ import { el, dot } from "./dots.js";
 export function createScale({ label, onPick, onTouch, read = false }) {
   const root = el("div", "scale" + (read ? " scale--read" : ""));
   const track = el("div", "dots");
-  track.setAttribute("role", "radiogroup");
+  track.setAttribute("role", read ? "group" : "radiogroup");
   if (label) track.setAttribute("aria-label", label);
   const move = el("span", "scale__move");
   track.appendChild(move);
@@ -17,7 +17,7 @@ export function createScale({ label, onPick, onTouch, read = false }) {
   for (let i = 1; i <= 7; i++) {
     const b = el("button", "scale__step");
     b.type = "button";
-    b.setAttribute("role", "radio");
+    if (!read) b.setAttribute("role", "radio");
     b.dataset.step = i;
     b.setAttribute("aria-label", "Step " + i + " of 7");
     b.append(dot(false, false), el("span", "scale__num", String(i)));
@@ -40,8 +40,13 @@ export function createScale({ label, onPick, onTouch, read = false }) {
       d.classList.toggle("is-pred", marks.pred === i);
       b.classList.toggle("is-on", marks.today === i || marks.pred === i);
       b.classList.toggle("is-touch", touched === i);
-      b.setAttribute("aria-checked", cur === i ? "true" : "false");
-      b.tabIndex = (cur == null ? i === 1 : cur === i) ? 0 : -1;
+      if (read) {
+        b.setAttribute("aria-label", "Step " + i + " of 7" + (marks.today === i ? ", today" : "") + (marks.pred === i ? ", prediction" : ""));
+        b.tabIndex = (touched ?? 1) === i ? 0 : -1;
+      } else {
+        b.setAttribute("aria-checked", cur === i ? "true" : "false");
+        b.tabIndex = (cur == null ? i === 1 : cur === i) ? 0 : -1;
+      }
     });
     if (marks.today != null && marks.pred != null && marks.today !== marks.pred) {
       const lo = Math.min(marks.today, marks.pred), hi = Math.max(marks.today, marks.pred);
@@ -85,7 +90,7 @@ export function createScale({ label, onPick, onTouch, read = false }) {
   track.addEventListener("pointerleave", e => { if (!down && e.pointerType === "mouse") touch(null); });
 
   track.addEventListener("keydown", e => {
-    const cur = current() ?? touched ?? 0;
+    const cur = read ? (touched ?? 0) : (current() ?? touched ?? 0);
     let next = null;
     if (e.key === "ArrowRight" || e.key === "ArrowUp") next = Math.min(7, cur + 1);
     if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = Math.max(1, cur - 1);

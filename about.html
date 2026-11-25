@@ -6,85 +6,74 @@
 <title>About · Prediction Booth</title>
 <meta name="description" content="A towel was a wish: where the Prediction Booth comes from, and how its scenario text is made.">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23111'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23b3261e'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23111'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23f4f2ee'/%3E%3C/svg%3E">
 <script>try { var t = localStorage.getItem("prediction-booth-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
 <link rel="stylesheet" href="css/site.css">
 </head>
 <body>
-<header class="top">
-  <div class="wrap">
-    <div class="row">
-      <div class="row__label"><a class="brand" href="index.html">Prediction Booth</a></div>
-      <div class="row__body">
-        <nav class="nav" aria-label="Pages">
-          <a href="index.html">Survey</a>
-          <a href="explore.html">Explore</a>
-          <a href="about.html" aria-current="page">About</a>
-        </nav>
-        <button class="theme" type="button" aria-label="Switch between light and dark">Dark</button>
-      </div>
-    </div>
-  </div>
+<header class="menubar">
+  <a class="menubar__brand" href="index.html">Prediction Booth</a>
+  <nav aria-label="Pages">
+    <a href="index.html">Survey</a>
+    <a href="explore.html">Explore</a>
+    <a href="about.html" aria-current="page">About</a>
+  </nav>
+  <button class="theme" type="button" aria-label="Switch between light and dark">Dark</button>
 </header>
 
-<main>
-  <div class="wrap">
-    <!-- The towel story: text as written in the first prototype's about.html. -->
-    <section class="row row--plain">
-      <div class="row__label"><div class="eyebrow">About this research</div></div>
-      <div class="row__body stack">
-        <h1 class="title">A towel was a wish</h1>
-        <div class="text">
-          <p>In Belarusian villages a ritual towel was not for drying hands. It was woven for a wedding, a feast day, a guest met with bread and salt, and its red pattern carried what a household hoped would come. Nobody wrote the wish down. It was made row by row, in a language of dots that everyone could see and each person read in their own way.</p>
-          <p>The official story says that in 1917 Matrona Markevich wove such a towel, and that in 1951 her pattern was placed on the flag of Soviet Belarus under the name “the rising sun”. A historian has since argued that no weaver ever used that name, and that the story was shaped by the professor who proposed the pattern, her brother. Whoever is right, a pattern made for one family ended up standing for a country. Nobody predicted that.</p>
-        </div>
-        <div class="towel" aria-hidden="true">● ● ● ● ● ● ●</div>
-        <div class="text">
-          <p>The Prediction Booth turns the towel around. A towel says what you hope for. Here you say what you expect: how you see the Netherlands today, and where you think it is heading. You leave with your answer as a pattern of dots. One card is one view. Together the cards show how differently the same country looks from where each of us stands.</p>
-          <p>I am a designer, and this is part of my master's research into how patterns come to carry meaning, and who gets to say what they mean.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="row" id="how">
-      <div class="row__label stack stack--s">
-        <div class="eyebrow">How your text is made</div>
-      </div>
-      <div class="row__body stack">
-        <p class="text">Nothing here is written by AI. Every step on every question has one sentence, written in advance. Your scenario text is those sentences put together by three rules.</p>
-        <ol class="rule">
-          <li><span><b>Today.</b> The four steps you marked for today are joined into one paragraph: “You see the Netherlands today as a country where …”.</span></li>
-          <li><span><b>Prediction.</b> Only the questions where your prediction differs from today go into the second paragraph, with how soon. If nothing moved, it says so.</span></li>
-          <li><span><b>Price.</b> The question you moved farthest adds one line on what that move costs. Two questions tied for farthest add a line each.</span></li>
-        </ol>
-        <p class="text">Below is everything the text can be made of. Touch a step to read the sentence it adds.</p>
-      </div>
-    </section>
-
-    <div id="table"></div>
-
-    <section class="row">
-      <div class="row__label"><div class="eyebrow">What the booth keeps</div></div>
-      <div class="row__body stack stack--s">
-        <ul class="plain-list">
-          <li>Your marks: today, prediction, and the years.</li>
-          <li>The name you give your prediction and your one line of reasoning.</li>
-          <li>Three ticks: the kind of work you do, whether you live in the Netherlands, and whether your marks and words may be shown in the research publication.</li>
-        </ul>
-        <p class="text">The booth keeps your marks and the name you give them, never your name. On this website your answer stays in the browser you gave it in. Nothing is sent anywhere.</p>
-        <div class="actions"><a class="btn btn--go" href="index.html">Donate your view</a><a class="btn" href="explore.html">See all cards</a></div>
-      </div>
-    </section>
-  </div>
-</main>
-
-<footer class="foot">
-  <div class="wrap">
-    <div class="row">
-      <div class="row__label">Prediction Booth</div>
-      <div class="row__body">No names, no accounts, no money. Your answer stays in this browser.</div>
+<div class="shell">
+  <aside class="panel panel--side" aria-label="Contents">
+    <div class="panel__title">Contents</div>
+    <div class="panel__body">
+      <nav class="receipt" aria-label="On this page"><span class="rl">================================</span><span class="rl">             ABOUT</span><span class="rl">================================</span><a class="rrow" href="#towel"><span class="rl">1 A towel was a wish</span></a><a class="rrow" href="#how"><span class="rl">2 How your text is made</span></a><span id="toc"></span><a class="rrow" href="#keeps"><span class="rl">8 What the booth keeps</span></a><span class="rl">================================</span></nav>
     </div>
-  </div>
+  </aside>
+  <main class="panel panel--main">
+    <div class="panel__title">About this research</div>
+    <div class="panel__body">
+      <div class="col">
+        <!-- The towel story: text as written in the first prototype's about.html. -->
+        <section class="sec stack" id="towel">
+          <h1 class="big">A towel was a wish</h1>
+          <div class="text">
+            <p>In Belarusian villages a ritual towel was not for drying hands. It was woven for a wedding, a feast day, a guest met with bread and salt, and its red pattern carried what a household hoped would come. Nobody wrote the wish down. It was made row by row, in a language of dots that everyone could see and each person read in their own way.</p>
+            <p>The official story says that in 1917 Matrona Markevich wove such a towel, and that in 1951 her pattern was placed on the flag of Soviet Belarus under the name “the rising sun”. A historian has since argued that no weaver ever used that name, and that the story was shaped by the professor who proposed the pattern, her brother. Whoever is right, a pattern made for one family ended up standing for a country. Nobody predicted that.</p>
+            <p aria-hidden="true">●  ●  ●  ●  ●  ●  ●</p>
+            <p>The Prediction Booth turns the towel around. A towel says what you hope for. Here you say what you expect: how you see the Netherlands today, and where you think it is heading. You leave with your answer as a pattern of dots. One card is one view. Together the cards show how differently the same country looks from where each of us stands.</p>
+            <p>I am a designer, and this is part of my master's research into how patterns come to carry meaning, and who gets to say what they mean.</p>
+          </div>
+        </section>
+
+        <section class="sec stack" id="how">
+          <h2 class="sec__h">How your text is made</h2>
+          <p>Nothing here is written by AI. Every step on every question has one sentence, written in advance. Your scenario text is those sentences put together by three rules.</p>
+          <ol class="steps">
+            <li><span><b>Today.</b> The four steps you marked for today are joined into one paragraph: “You see the Netherlands today as a country where …”.</span></li>
+            <li><span><b>Prediction.</b> Only the questions where your prediction differs from today go into the second paragraph, with how soon. If nothing moved, it says so.</span></li>
+            <li><span><b>Price.</b> The question you moved farthest adds one line on what that move costs. Two questions tied for farthest add a line each.</span></li>
+          </ol>
+          <p>Below is everything the text can be made of. Touch a step to read the sentence it adds.</p>
+        </section>
+
+        <div id="table"></div>
+
+        <section class="sec stack stack--s" id="keeps">
+          <h2 class="sec__h">What the booth keeps</h2>
+          <ul class="plain-list">
+            <li>Your marks: today, prediction, and the years.</li>
+            <li>The name you give your prediction and your one line of reasoning.</li>
+            <li>Three ticks: the kind of work you do, whether you live in the Netherlands, and whether your marks and words may be shown in the research publication.</li>
+          </ul>
+          <p>The booth keeps your marks and the name you give them, never your name. On this website your answer stays in the browser you gave it in. Nothing is sent anywhere.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer class="keybar" aria-label="Actions">
+  <a class="fkey fkey--go" href="index.html"><span>Donate your view</span></a>
+  <a class="fkey" href="explore.html"><span>See all cards</span></a>
 </footer>
 
 <script type="module" src="js/chrome.js"></script>
