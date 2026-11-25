@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore · Prediction Booth</title>
+<meta name="description" content="Every view donated at the Prediction Booth, side by side: the field and the roll.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23111'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23b3261e'/%3E%3C/svg%3E">
+<script>try { var t = localStorage.getItem("prediction-booth-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="row">
+      <div class="row__label"><a class="brand" href="index.html">Prediction Booth</a></div>
+      <div class="row__body">
+        <nav class="nav" aria-label="Pages">
+          <a href="index.html">Survey</a>
+          <a href="explore.html" aria-current="page">Explore</a>
+          <a href="about.html">About</a>
+        </nav>
+        <button class="theme" type="button" aria-label="Switch between light and dark">Dark</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="row row--plain">
+      <div class="row__label stack stack--s">
+        <div class="eyebrow">Explore</div>
+        <h1 class="question">Every view, side by side</h1>
+      </div>
+      <div class="row__body stack stack--s">
+        <p class="lead">One card is one person's view of the Netherlands: where it is today and where they predict it is heading. Together the cards show how differently the same country looks.</p>
+        <p id="counts" class="note"></p>
+        <label class="tick small" id="invented-toggle"><input type="checkbox" id="show-invented"><span>Show the invented cards</span></label>
+      </div>
+    </section>
+
+    <section class="row" style="display:block" aria-labelledby="field-h">
+      <div class="prow prow--head">
+        <div class="stack stack--s">
+          <h2 class="eyebrow" id="field-h">The field</h2>
+        </div>
+        <div class="legend">
+          <span><i class="key key--today"></i>today</span>
+          <span><i class="key key--ring"></i>prediction</span>
+          <span>bigger = chosen by more people</span>
+        </div>
+      </div>
+      <div id="field"></div>
+      <div class="prow" style="margin-top:16px">
+        <div></div>
+        <div class="desc" id="field-desc" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="row row--wide" aria-labelledby="roll-h">
+      <div class="row__label stack stack--s">
+        <h2 class="eyebrow" id="roll-h">The roll</h2>
+        <p class="note">Every card in order of arrival. Open one to read its text.</p>
+      </div>
+      <div class="row__body">
+        <div class="roll" id="roll"></div>
+      </div>
+    </section>
+
+    <section class="row" aria-labelledby="data-h">
+      <div class="row__label stack stack--s">
+        <h2 class="eyebrow" id="data-h">Cards in this browser</h2>
+      </div>
+      <div class="row__body stack stack--s">
+        <p class="text">Answers are kept only in the browser they were given in. Save them to a file to keep them or to move them to another computer. Nothing is sent anywhere.</p>
+        <div class="actions">
+          <button class="btn" type="button" id="export">Save cards to a file</button>
+          <button class="btn" type="button" id="import">Add cards from a file</button>
+          <button class="btn btn--quiet" type="button" id="clear">Delete all cards here</button>
+          <input type="file" id="import-file" accept="application/json,.json" hidden>
+        </div>
+        <p class="note" id="data-status" aria-live="polite"></p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<dialog class="card" id="card" aria-labelledby="card-title"></dialog>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="row">
+      <div class="row__label">Prediction Booth</div>
+      <div class="row__body">No names, no accounts, no money. Your answer stays in this browser.</div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="js/chrome.js"></script>
+<script type="module" src="js/explore.js"></script>
+</body>
+</html>

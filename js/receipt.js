@@ -97,7 +97,7 @@ export function receiptLines(card, opts = {}) {
   L.push(lr("PAID", "EUR 0.00"));
   L.push("");
   L.push("KEPT BY THE BOOTH");
-  L.push(...wrap("Your marks, the name you gave them and your reason. Never your name."));
+  L.push(...wrap(opts.label ? "Nothing: this one is an example." : "Your marks, the name you gave them and your reason. Never your name."));
   L.push(rule("-"));
   L.push("TO KEEP TALKING");
   L.push(...wrap("with someone whose card looks like yours or nothing like it:"));
