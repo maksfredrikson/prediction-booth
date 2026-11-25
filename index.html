@@ -16,6 +16,7 @@
   <nav aria-label="Sections">
     <a href="survey.html">Survey</a>
     <a href="index.html#explore" aria-current="page">Explore</a>
+    <a href="scenarios.html">Scenarios</a>
     <a href="about.html">About</a>
   </nav>
   <button class="theme" type="button" aria-label="Switch to light" title="Light or dark"></button>
@@ -71,15 +72,9 @@
     <div class="rollgrid" id="roll"></div>
   </section>
 
-  <section class="sec stack stack--s" aria-labelledby="ready-h">
-    <h2 class="mid" id="ready-h">Five ready-made answers</h2>
-    <p class="muted">Open one to see its receipt. Nothing is saved.</p>
-    <div class="chips" id="presets"></div>
-  </section>
-
-  <section class="sec stack read" aria-labelledby="data-h">
-    <h2 class="mid" id="data-h">Cards in this browser</h2>
-    <p>Answers are kept only in the browser they were given in. Save them to a file to keep them or to move them to another computer. Nothing is sent anywhere.</p>
+  <!-- For the booth, not for visitors: shown only at index.html#data -->
+  <section class="sec stack read" id="data" aria-labelledby="data-h" hidden>
+    <h2 class="mid" id="data-h">Cards on this device</h2>
     <div class="actions">
       <button class="btn btn--plain btn--s" type="button" id="export">Save cards to a file</button>
       <button class="btn btn--plain btn--s" type="button" id="import">Add cards from a file</button>

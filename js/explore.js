@@ -22,7 +22,7 @@ function refresh() {
   cards = [...(showBox.checked ? INVENTED : []), ...real];
   const counts = $("counts");
   counts.textContent = "";
-  counts.append(real.length === 0 ? "No real cards in this browser yet. " : real.length + (real.length === 1 ? " real card" : " real cards") + " in this browser. ");
+  counts.append(real.length === 0 ? "No real cards yet. " : real.length + (real.length === 1 ? " real card. " : " real cards. "));
   if (showBox.checked) counts.append(el("span", "tag", "invented"), " " + INVENTED.length + " cards are made up, so the page is not empty before the booth has visitors.");
   periods();
   field();
@@ -198,11 +198,9 @@ $("clear").addEventListener("click", () => {
   refresh();
 });
 
-// the ready-made answers open as example receipts on the survey page
-B.presets.forEach((pr, k) => {
-  const a = el("a", "chip", pr.name);
-  a.href = "survey.html?preset=" + k;
-  $("presets").appendChild(a);
-});
+// the save and add-from-file tools are for the booth: they show only at index.html#data
+const tools = () => { $("data").hidden = location.hash !== "#data"; };
+window.addEventListener("hashchange", tools);
+tools();
 
 refresh();

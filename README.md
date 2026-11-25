@@ -25,13 +25,14 @@ network off.
 
 | Page | File | What it does |
 |---|---|---|
-| Landing and Explore | `index.html`, `js/explore.js` | One scrolling page. On top: the invitation to the survey. Below: a row of time frames that filters everything under it, the field (a bar chart per question, today up and prediction down, with the group's average move), the roll (every card in order of arrival), five ready-made answers, and saving or adding cards as a file. |
+| Landing and Explore | `index.html`, `js/explore.js` | One scrolling page. On top: the invitation to the survey. Below: a row of time frames that filters everything under it, the field (a bar chart per question, today up and prediction down, with the group's average move), the roll (every card in order of arrival). Saving cards to a file and adding cards from a file are hidden from visitors: open `index.html#data`. |
 | Survey | `survey.html`, `js/survey.js` | Made for touch. First the time frame (5, 10, 15, 20 or 25 years). Then four questions on a five-step scale, each on two lines: today and the prediction; the meaning of a chosen step shows under its line. Then one last step: consent (required), one line of reasoning and a "tip" of data (how long they have lived in the Netherlands), both optional. Then the receipt on its own screen. |
+| Scenarios | `scenarios.html`, `js/scenarios.js` | The five ready-made predictions from the content file: two scenarios from the zine, and the two edges and the middle of the scale. Each can be opened as an example receipt. |
 | About | `about.html`, `js/about.js` | The towel story, then every sentence the scenario text can be made of. |
 
 ## Look
 
-A plain navigation column on the left (on top on a phone) and one wide working area. One kind
+A plain navigation column on the left (on top on a phone) with four sections and one wide working area. One kind
 of information and one clear action per screen. Type and marks follow the receipt: one
 monospace face, no colour, dark by default (the small half dot in the navigation switches to
 light). Today is a big halftone dot, the prediction a small solid dot.

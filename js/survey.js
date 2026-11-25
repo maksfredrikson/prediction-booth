@@ -239,7 +239,8 @@ function showResult(card, meta) {
   const actions = el("div", "actions");
   if (meta.saved) actions.append(button("Print receipt", "btn", "print", () => window.print()), button("Next visitor: start again", "linkbtn", "", again));
   else actions.append(button("Answer yourself", "btn", "next", again), button("Print this receipt", "linkbtn", "print", () => window.print()));
-  const see = link("index.html#explore", "See all cards"); see.className = "linkbtn";
+  const see = meta.preset != null ? link("scenarios.html", "All scenarios") : link("index.html#explore", "See all cards");
+  see.className = "linkbtn";
   actions.append(see);
 
   const top = meta.saved
@@ -256,7 +257,7 @@ function usePreset(k) {
   const mid = Math.ceil(B.steps / 2);
   showResult({ today: [mid, mid, mid, mid], prediction: pr.pred.slice(), years, at: new Date().toISOString() },
     { saved: false, preset: k, title: pr.name,
-      note: "A ready-made answer: today sits in the middle of every scale, the prediction is this preset, " + B.time.phrases[years - 1] + "." +
+      note: "A scenario shown as a receipt: today sits in the middle of every scale, the prediction is this scenario, " + B.time.phrases[years - 1] + "." +
         (pr.text ? " From the zine: " + pr.text : "") });
 }
 

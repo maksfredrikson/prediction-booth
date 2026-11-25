@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scenarios · Prediction Booth</title>
+<meta name="description" content="Five ready-made answers: two scenarios from the zine, and the two edges and the middle of the scale.">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23111'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23f4f2ee'/%3E%3C/svg%3E">
+<script>try { if (localStorage.getItem("prediction-booth-theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}</script>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<aside class="side">
+  <a class="brand" href="index.html">Prediction Booth</a>
+  <nav aria-label="Sections">
+    <a href="survey.html">Survey</a>
+    <a href="index.html#explore">Explore</a>
+    <a href="scenarios.html" aria-current="page">Scenarios</a>
+    <a href="about.html">About</a>
+  </nav>
+  <button class="theme" type="button" aria-label="Switch to light" title="Light or dark"></button>
+</aside>
+
+<main class="main">
+  <section class="sec stack">
+    <div class="stack stack--s">
+      <div class="kicker">Scenarios</div>
+      <h1 class="big">Where it could go.</h1>
+    </div>
+    <p class="lead">Five ready-made predictions, written before any visitor answered. They are not data: nobody gave them. Read them, or open one as a receipt to see what an answer looks like.</p>
+  </section>
+
+  <div id="scenarios"></div>
+
+  <section class="sec stack">
+    <p class="lead">Which one is closest to yours?</p>
+    <div class="actions"><a class="btn" href="survey.html">Start the survey</a></div>
+  </section>
+</main>
+
+<script type="module" src="js/chrome.js"></script>
+<script type="module" src="js/scenarios.js"></script>
+</body>
+</html>
