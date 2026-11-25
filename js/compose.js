@@ -6,7 +6,7 @@ import { BOOTH as B } from "./content.js";
 export const list = parts =>
   parts.length === 1 ? parts[0] : parts.slice(0, -1).join("; ") + "; and " + parts[parts.length - 1];
 
-// s = { today: [1-7 x4], prediction: [1-7 x4], years: 1-7 }
+// s = { today: [1-7 x4], prediction: [1-7 x4], years: 1-5, the step on the time frame }
 export function compose(s) {
   const step = (a, v) => B.axes[a].steps[v - 1].t;
   const today = "You see " + B.place + " today as a country where " + list(s.today.map((v, a) => step(a, v))) + ".";
@@ -30,7 +30,16 @@ export function compose(s) {
   return { today, prediction, priceLead: "The price of that move:", price: prices.join(" ") };
 }
 
+// A card's name is generated, not typed: the first clause of the price of its biggest move.
+export function titleOf(s) {
+  const c = compose(s);
+  return c.priceLead ? c.price.split(/[:,.]/)[0].trim() : "Nothing moves";
+}
+
+// How far each question moved, as signed steps: [+3, +2, 0, +2]
+export const moves = s => s.prediction.map((v, a) => v - s.today[a]);
+
 export const asText = c => [c.today, c.prediction, (c.priceLead ? c.priceLead + " " : "") + c.price].join("\n");
 
 export const complete = s =>
-  s.today.every(v => v >= 1 && v <= 7) && s.prediction.every(v => v >= 1 && v <= 7) && s.years >= 1 && s.years <= 7;
+  s.today.every(v => v >= 1 && v <= 7) && s.prediction.every(v => v >= 1 && v <= 7) && s.years >= 1 && s.years <= B.time.labels.length;

@@ -4,39 +4,90 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prediction Booth</title>
-<meta name="description" content="Donate your view of the Netherlands: mark how you see the country today and where you predict it is heading. You get a pattern of dots, a short scenario text and a donation receipt.">
-<meta name="color-scheme" content="light dark">
+<meta name="description" content="Donate your view of the Netherlands: mark how you see the country today and where you predict it is heading. You get a donation receipt, and your view joins everyone else's.">
+<meta name="color-scheme" content="dark light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23111'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23f4f2ee'/%3E%3C/svg%3E">
-<script>try { var t = localStorage.getItem("prediction-booth-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<script>try { if (localStorage.getItem("prediction-booth-theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}</script>
 <link rel="stylesheet" href="css/site.css">
 </head>
 <body>
-<header class="menubar">
-  <a class="menubar__brand" href="index.html">Prediction Booth</a>
-  <nav aria-label="Pages">
-    <a href="index.html" aria-current="page">Survey</a>
-    <a href="explore.html">Explore</a>
+<aside class="side">
+  <a class="brand" href="index.html">Prediction Booth</a>
+  <nav aria-label="Sections">
+    <a href="survey.html">Survey</a>
+    <a href="index.html#explore" aria-current="page">Explore</a>
     <a href="about.html">About</a>
   </nav>
-  <button class="theme" type="button" aria-label="Switch between light and dark">Dark</button>
-</header>
+  <button class="theme" type="button" aria-label="Switch to light" title="Light or dark"></button>
+</aside>
 
-<div class="shell">
-  <aside class="panel panel--side" aria-label="Receipt">
-    <div class="panel__title" id="side-title">Receipt</div>
-    <div class="panel__body" id="side"></div>
-  </aside>
-  <main class="panel panel--main">
-    <h1 class="panel__title" id="main-title">Survey</h1>
-    <div class="panel__body" id="screen">
-      <noscript><p>Prediction Booth needs JavaScript to run. Nothing is sent anywhere: your answer stays in this browser.</p></noscript>
+<main class="main">
+  <!-- the survey: one spot at the top of the page -->
+  <section class="sec stack" aria-labelledby="hero-h">
+    <div class="stack stack--s">
+      <div class="kicker">A donation booth</div>
+      <h1 class="big" id="hero-h">Donate your view of the Netherlands.</h1>
     </div>
-  </main>
-</div>
+    <p class="lead">Four questions about the Netherlands: where the country is today, where you predict it is heading, and how soon. You get a donation receipt back, and your view joins the ones below.</p>
+    <div class="actions">
+      <a class="btn" href="survey.html">Start the survey</a>
+      <span class="note">About two minutes. No name, no money.</span>
+    </div>
+  </section>
 
-<footer class="keybar" id="keys" aria-label="Actions"></footer>
+  <section class="sec stack stack--l" id="explore" aria-labelledby="field-h">
+    <div class="stack">
+      <div class="stack stack--s">
+        <div class="kicker">Explore</div>
+        <h2 class="big" id="field-h">Every view, side by side.</h2>
+      </div>
+      <p class="lead">One card is one person's view of the Netherlands. Together the cards show how differently the same country looks.</p>
+      <div class="stack stack--s">
+        <p id="counts"></p>
+        <label class="tick"><input type="checkbox" id="show-invented"><span>Show the invented cards</span></label>
+      </div>
+    </div>
+    <div class="stack stack--s">
+      <h3 class="mid">The field: how many chose each step</h3>
+      <div class="legend">
+        <span><i class="key key--bar-t"></i>bars up: today</span>
+        <span><i class="key key--bar-p"></i>bars down: prediction</span>
+        <span>touch a step to read it</span>
+      </div>
+    </div>
+    <div class="charts" id="field"></div>
+  </section>
+
+  <section class="sec stack" aria-labelledby="roll-h">
+    <div class="stack stack--s">
+      <h2 class="mid" id="roll-h">The roll: every card, in order of arrival</h2>
+      <div class="legend"><span>( ) today</span><span>* prediction</span><span>open a card to read its text</span></div>
+    </div>
+    <div class="rollgrid" id="roll"></div>
+  </section>
+
+  <section class="sec stack stack--s" aria-labelledby="ready-h">
+    <h2 class="mid" id="ready-h">Five ready-made answers</h2>
+    <p class="muted">Open one to see its receipt. Nothing is saved.</p>
+    <div class="chips" id="presets"></div>
+  </section>
+
+  <section class="sec stack read" aria-labelledby="data-h">
+    <h2 class="mid" id="data-h">Cards in this browser</h2>
+    <p>Answers are kept only in the browser they were given in. Save them to a file to keep them or to move them to another computer. Nothing is sent anywhere.</p>
+    <div class="actions">
+      <button class="btn btn--plain btn--s" type="button" id="export">Save cards to a file</button>
+      <button class="btn btn--plain btn--s" type="button" id="import">Add cards from a file</button>
+      <button class="linkbtn" type="button" id="clear">Delete all cards here</button>
+      <input type="file" id="import-file" accept="application/json,.json" hidden>
+    </div>
+    <p class="note" id="data-status" aria-live="polite"></p>
+  </section>
+</main>
+
+<dialog class="card" id="card" aria-labelledby="card-title"></dialog>
 
 <script type="module" src="js/chrome.js"></script>
-<script type="module" src="js/survey.js"></script>
+<script type="module" src="js/explore.js"></script>
 </body>
 </html>

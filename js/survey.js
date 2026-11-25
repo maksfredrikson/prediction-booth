@@ -1,82 +1,205 @@
-// Survey: one question per screen. Today, then the prediction, on the same scale;
-// then the years, then a name and one line. The receipt in the left column fills in as
-// the visitor answers and works as the navigation; at the end it is the result.
+// Survey, made for touch. It opens on the time frame, then asks four questions, each on
+// two lines (today and the prediction), then one last step: consent plus a few words about
+// the visitor. The receipt follows on its own screen. One clear action per screen.
 import { BOOTH as B } from "./content.js";
 import { complete } from "./compose.js";
-import { el, legend } from "./dots.js";
-import { patternNamed } from "./pattern.js";
+import { el } from "./dots.js";
 import { createScale } from "./scale.js";
 import { add, pref } from "./store.js";
 import { receiptParts, receiptView, armPrint, disarmPrint } from "./receipt.js";
 
-const $ = id => document.getElementById(id);
-const screen = $("screen"), side = $("side"), mainTitle = $("main-title"), keys = $("keys");
+const screen = document.getElementById("screen");
 const fresh = () => ({
   today: [null, null, null, null], prediction: [null, null, null, null], years: null,
-  name: "", because: "", role: null, livesNL: false, consent: false, paper: ""
+  because: "", role: null, livesNL: null, consent: null, paper: ""
 });
 let state = fresh();
 
-// The order of screens. Each question is two stops on one screen: today, then prediction.
-const FLOW = [{ k: "start" }];
-B.axes.forEach((_, a) => FLOW.push({ k: "step", a, mode: "today" }, { k: "step", a, mode: "pred" }));
-FLOW.push({ k: "step", a: 4, mode: "pred" }, { k: "words" });
+// The order of screens: the time frame, the four questions, the last step.
+const FLOW = [{ k: "time" }];
+B.axes.forEach((_, a) => FLOW.push({ k: "question", a }));
+FLOW.push({ k: "last" });
+const STEPS = B.axes.length + 1;   // what the bar counts: the four questions and the last step
 let pos = 0;
-let view = null;   // the scale screen now showing, kept while only the mode changes
+let view = null;   // the scale screen now showing
 
 // ---- small builders ----------------------------------------------------
 const stack = (cls, ...nodes) => { const s = el("div", "stack " + (cls || "")); s.append(...nodes.filter(Boolean)); return s; };
-const sec = (...nodes) => { const s = el("section", "sec stack stack--s"); s.append(...nodes.filter(Boolean)); return s; };
 function link(href, text) { const a = el("a", "", text); a.href = href; return a; }
-
-function mount(title, ...nodes) {
-  mainTitle.textContent = title;
+function button(text, cls, role, on) {
+  const b = el("button", cls, text);
+  b.type = "button";
+  if (role) b.dataset.role = role;
+  b.addEventListener("click", on);
+  return b;
+}
+function mount(...nodes) {
   screen.textContent = "";
-  const s = el("div", "screen col");
+  const s = el("div", "screen");
   s.append(...nodes.filter(Boolean));
   screen.appendChild(s);
-  screen.scrollTop = 0;
-  if (matchMedia("(max-width: 860px)").matches) window.scrollTo(0, 0);
+  window.scrollTo(0, 0);
 }
-
-// The bar of keys under the panels: [{ label, on | href, kbd, go, disabled, role }]
-function setKeys(list, hint) {
-  keys.textContent = "";
-  list.filter(Boolean).forEach(k => {
-    const b = el(k.href ? "a" : "button", "fkey" + (k.go ? " fkey--go" : ""));
-    if (k.href) b.href = k.href;
-    else { b.type = "button"; b.disabled = !!k.disabled; b.addEventListener("click", k.on); }
-    if (k.role) b.dataset.role = k.role;
-    if (k.kbd) b.append(el("kbd", "", k.kbd));
-    b.append(el("span", "", k.label));
-    keys.appendChild(b);
-  });
-  if (hint) keys.appendChild(el("span", "hint", hint));
+function progress(step) {
+  const bar = el("div", "progress");
+  for (let i = 1; i <= STEPS; i++) bar.appendChild(el("i", i < step ? "done" : i === step ? "now" : ""));
+  bar.setAttribute("role", "img");
+  bar.setAttribute("aria-label", step ? "Step " + step + " of " + STEPS : STEPS + " steps ahead");
+  return bar;
 }
+const head = (step, kicker, title) => stack("", progress(step), stack("stack--s", el("div", "kicker", kicker), el("h1", "big", title)));
 
-// The receipt column while answering: every row of marks is a way to that question.
-const firstOpenRow = () => { const r = state.today.findIndex((v, a) => v == null || state.prediction[a] == null); return r === -1 ? 4 : r; };
-const stopOf = (a, mode) => FLOW.findIndex(f => f.k === "step" && f.a === a && (a === 4 || f.mode === mode));
-function paintSide(active) {
-  side.textContent = "";
-  side.appendChild(receiptView(receiptParts(state, { draft: true }), {
-    active, canGo: r => r <= firstOpenRow(), onRow: r => go(stopOf(r, "today"))
-  }));
+function go(n) {
+  if (n < 0) { location.href = "index.html"; return; }   // back from the first screen: the landing page
+  pos = Math.min(FLOW.length - 1, n);
+  render();
 }
-
-function go(n) { pos = Math.max(0, Math.min(FLOW.length - 1, n)); render(); }
-
 function render() {
   const f = FLOW[pos];
-  if (f.k === "step" && view && view.a === f.a) { view.paint(); return; }
   view = null;
   disarmPrint();
-  if (f.k === "start") startScreen();
-  else if (f.k === "step") { view = stepScreen(f.a); view.paint(); }
-  else wordsScreen();
+  if (f.k === "time") view = scaleScreen(null);
+  else if (f.k === "question") view = scaleScreen(f.a);
+  else lastScreen();
+  if (view) view.paint();
 }
 
-// ---- start ---------------------------------------------------------------
+// ---- a scale screen: the time frame (one line) or a question (two lines) -----------
+// Tap or drag a line to choose; the meaning of the chosen step appears under it.
+function scaleScreen(a) {
+  const isTime = a == null;
+  const ax = isTime ? B.time : B.axes[a];
+  const next = button("Next", "btn", "next", () => go(pos + 1));
+  const actions = el("div", "actions");
+  actions.append(next, button("Back", "linkbtn", "back", () => go(pos - 1)));
+
+  // one line = a label on the left, a scale, and under it what the chosen step means
+  const line = (key, labelText, promptText, keyCls) => {
+    const get = () => (isTime ? state.years : (key === "pred" ? state.prediction : state.today)[a]);
+    const set = i => { if (isTime) state.years = i; else (key === "pred" ? state.prediction : state.today)[a] = i; };
+    const row = el("div", "line");
+    const label = el("div", "line__label");
+    const name = el("div", "line__name");
+    name.append(el("i", "key " + keyCls), document.createTextNode(labelText));
+    label.append(name, el("div", "line__ask", promptText));
+    const scale = createScale({ label: labelText + ": " + promptText, labels: isTime ? B.time.labels : undefined, onPick: i => { set(i); paint(); } });
+    scale.el.classList.add("scale--" + key);
+    const cap = el("div", "line__cap");
+    cap.setAttribute("aria-live", "polite");
+    const body = el("div", "line__body");
+    body.append(scale.el, cap);
+    row.append(label, body);
+    const paintLine = () => {
+      const i = get();
+      scale.set(key === "pred" ? { today: null, pred: i, mode: "pred" } : { today: i, pred: null, mode: "today" });
+      cap.textContent = "";
+      if (i == null) { cap.append(el("p", "muted", "Tap a step. Its meaning shows here.")); return; }
+      if (isTime) cap.append(el("div", "line__step", B.time.labels[i - 1] + " years"), el("p", "", "You predict where " + B.place + " will be " + B.time.phrases[i - 1] + "."));
+      else cap.append(el("div", "line__step", "Step " + i + " of 7"), el("p", "", "A country where " + ax.steps[i - 1].t + "."));
+    };
+    return { row, get, set, paintLine };
+  };
+  const when = state.years ? B.time.phrases[state.years - 1] : "by then";
+  const lines = isTime
+    ? [line("pred", "Years", "from now", "key--pred")]
+    : [line("today", "Today", "Where is " + B.place + " now?", "key--today"),
+       line("pred", "Prediction", "Where is it " + when + "?", "key--pred")];
+
+  // the two ends of the scale, named once above the lines
+  const ends = el("div", "line line--ends");
+  const poles = el("div", "poles");
+  poles.append(el("span", "", ax.l), el("span", "", ax.r));
+  ends.append(el("div"), poles);
+  const board = el("div", "lines");
+  board.append(isTime ? "" : ends, ...lines.map(l => l.row));
+
+  mount(stack("stack--l wide",
+    isTime ? head(0, "Before the questions", ax.q) : head(a + 1, "Question " + (a + 1) + " of " + B.axes.length, ax.q),
+    board, actions));
+
+  function paint() {
+    lines.forEach(l => l.paintLine());
+    next.disabled = !lines.every(l => l.get() != null);
+    next.textContent = isTime ? "Start: question 1" : a < B.axes.length - 1 ? "Next question" : "Next: last step";
+  }
+  // number keys: fill the first empty line, then change the last one
+  const pick = i => {
+    if (i > (isTime ? B.time.labels.length : 7)) return;
+    const l = lines.find(x => x.get() == null) || lines[lines.length - 1];
+    l.set(i); paint();
+  };
+  return { paint, pick };
+}
+
+// A row of large choices; exactly one is chosen. options: [[value, label], ...]
+function choices(labelText, options, current, onPick) {
+  const box = el("div", "stack stack--s");
+  const group = el("div", "choices");
+  group.setAttribute("role", "radiogroup");
+  group.setAttribute("aria-label", labelText);
+  const buttons = options.map(([value, text]) => {
+    const b = el("button", "choice", text);
+    b.type = "button";
+    b.setAttribute("role", "radio");
+    b.addEventListener("click", () => { current = value; paint(); onPick(value); });
+    group.appendChild(b);
+    return { b, value };
+  });
+  const paint = () => buttons.forEach(o => o.b.setAttribute("aria-checked", o.value === current ? "true" : "false"));
+  paint();
+  box.append(el("div", "mid", labelText), group);
+  return box;
+}
+
+// ---- the last step: consent, plus a reason and two things about the visitor ----------
+function lastScreen() {
+  const field = (id, labelText, max, value) => {
+    const f = el("div", "field");
+    const l = el("label", "", labelText); l.htmlFor = id;
+    const i = el("input"); i.type = "text"; i.id = id; i.maxLength = max; i.value = value || ""; i.autocomplete = "off";
+    f.append(l, i);
+    return { f, i };
+  };
+  const because = field("w-because", "I predict this because (one line, if you like)", 120, state.because);
+  const paper = field("w-paper", "Paper card number, if you hold one", 3, state.paper);
+  paper.i.inputMode = "numeric";
+  const keep = () => { state.because = because.i.value; state.paper = paper.i.value; };
+
+  const give = button("Donate my view", "btn", "", () => { keep(); donate(); });
+  const hint = el("p", "note");
+  const ready = () => {
+    const missing = [state.consent == null ? "consent" : null, state.role == null ? "your work" : null, state.livesNL == null ? "where you live" : null].filter(Boolean);
+    give.disabled = missing.length > 0;
+    hint.textContent = missing.length ? "Still to answer: " + missing.join(", ") + "."
+      : state.consent ? "Ready. Shown without your name: there is no name to show."
+      : "Ready. Your view still counts at the booth; it will not appear in the publication.";
+  };
+  const actions = el("div", "actions");
+  actions.append(give, button("Back", "linkbtn", "back", () => { keep(); go(pos - 1); }));
+  ready();
+
+  mount(stack("stack--l wide",
+    head(STEPS, "Last step", "Consent, and two things about you"),
+    stack("",
+      el("p", "lead", "My marks and my words may be shown, without my name, in a master's research publication."),
+      choices("Your consent", [[true, "Yes, they may be shown"], [false, "No, keep them out of the publication"]], state.consent, v => { state.consent = v; ready(); })),
+    choices("I work as", [["designer", "a designer"], ["engineer", "an engineer"], ["other", "something else"]], state.role, v => { state.role = v; ready(); }),
+    choices("I live in the Netherlands", [[true, "Yes"], [false, "No"]], state.livesNL, v => { state.livesNL = v; ready(); }),
+    stack("form", because.f, paper.f),
+    stack("stack--s", el("p", "note", "The booth keeps your marks, these answers and your one line. Never your name or a contact detail: please leave them out."), hint),
+    actions));
+}
+
+function donate() {
+  if (!complete(state) || state.consent == null) { go(0); return; }
+  const no = parseInt(state.paper, 10);
+  const saved = add({ ...state, no: Number.isInteger(no) && no > 0 ? no : null });
+  const card = saved || { ...state, at: new Date().toISOString() };
+  state = fresh();
+  showResult(card, saved ? { saved: true } : { saved: false, label: "NOT SAVED", title: "Your view", note: "This browser refused to save the answer, so it is shown once and not kept." });
+}
+
+// ---- the receipt: its own screen, one unbroken strip ---------------------------------
 function presetChips(active) {
   const chips = el("div", "chips");
   B.presets.forEach((pr, k) => {
@@ -89,218 +212,66 @@ function presetChips(active) {
   return chips;
 }
 
-function startScreen() {
-  const hero = sec(
-    el("h2", "big", B.line + "."),
-    el("p", "", "Four questions about " + B.place + ". For each one you mark where the country is today and where you predict it is heading. Then you say how soon."),
-    el("p", "", "You get your answer back as a donation receipt: your marks, a short scenario text and what your prediction costs. It fills in beside this column while you answer."),
-    el("p", "", "About two minutes. No name, no money.")
-  );
-  const look = sec(el("h2", "sec__h", "Or look first"), el("p", "", "Open a ready-made answer. Nothing is saved."), presetChips(-1));
-  const what = el("p", "");
-  what.append(
-    "Prediction Booth is a prototype for a conference booth and part of a design master's research into how patterns come to carry meaning. The scenario text is put together from sentences written in advance, not by AI. ",
-    link("about.html#how", "How the text is made"), ". ", link("explore.html", "See all cards"), "."
-  );
-  mount("Survey", hero, look, sec(el("h2", "sec__h", "What this is"), what));
-  setKeys([{ label: "Start", kbd: "Enter", go: true, role: "next", on: () => go(1) }], "or press a question in the receipt");
-  paintSide(null);
-}
-
-// ---- a scale screen: one of the four questions, or the years --------------
-function stepScreen(a) {
-  const isTime = a === 4;
-  const ax = isTime ? B.time : B.axes[a];
-  let touched = null;
-
-  const head = el("h2", "big", ax.q);
-  const tabs = el("div", "modes");
-  tabs.setAttribute("role", "tablist");
-  const tab = (mode, text, keyCls) => {
-    const t = el("button", "mode");
-    t.type = "button";
-    t.setAttribute("role", "tab");
-    t.append(el("i", "key " + keyCls), document.createTextNode(text));
-    t.addEventListener("click", () => go(stopOf(a, mode)));
-    return t;
-  };
-  const tabToday = tab("today", "Today", "key--today");
-  const tabPred = tab("pred", "Prediction", "key--pred");
-  if (!isTime) tabs.append(tabToday, tabPred);
-
-  const prompt = el("p", "");
-  const mode = () => FLOW[pos].mode;
-  const get = m => (isTime ? state.years : (m === "pred" ? state.prediction : state.today)[a]);
-  const pick = i => {
-    if (isTime) state.years = i;
-    else (mode() === "pred" ? state.prediction : state.today)[a] = i;
-    paint();
-  };
-  const scale = createScale({ label: ax.q, onPick: pick, onTouch: i => { touched = i; paintDesc(); } });
-  const poles = el("div", "poles");
-  poles.append(el("span", "", ax.l), el("span", "", ax.r));
-  const scaleBox = el("div");
-  scaleBox.append(scale.el, poles);
-
-  const desc = el("div", "desc");
-  desc.setAttribute("aria-live", "polite");
-  mount(isTime ? "How soon" : "Question " + (a + 1) + " of 4", stack("", head, isTime ? null : tabs, prompt, scaleBox, desc));
-
-  function paintDesc() {
-    const i = touched ?? get(mode());
-    desc.textContent = "";
-    if (i == null) { desc.append(el("p", "", "Touch a step to read what it stands for. The dot you choose grows.")); return; }
-    const is = [];
-    if (!isTime && state.today[a] === i) is.push("today");
-    if ((isTime ? state.years : state.prediction[a]) === i) is.push("your prediction");
-    const tag = "Step " + i + " of 7" + (is.length ? ": " + is.join(" and ") : "");
-    desc.append(el("div", "desc__step", tag), el("p", "", isTime ? "It gets there " + B.time.phrases[i - 1] + "." : "A country where " + ax.steps[i - 1].t + "."));
-  }
-
-  function paint() {
-    const m = mode();
-    if (!isTime) {
-      tabToday.setAttribute("aria-selected", m === "today" ? "true" : "false");
-      tabPred.setAttribute("aria-selected", m === "pred" ? "true" : "false");
-      tabPred.disabled = state.today[a] == null;
-    }
-    prompt.textContent = isTime ? "How many years until your prediction is the country?" :
-      m === "today" ? "Today: where is " + B.place + " now?" : "Your prediction: where is it heading?";
-    scale.set(isTime ? { today: null, pred: state.years, mode: "pred" } : { today: state.today[a], pred: state.prediction[a], mode: m });
-    setKeys([
-      { label: "Back", kbd: "Esc", role: "back", on: () => go(pos - 1) },
-      { label: isTime ? "Next: name it" : m === "today" ? "Next: your prediction" : a < 3 ? "Next question" : "Next: how soon",
-        kbd: "Enter", go: true, role: "next", disabled: get(m) == null, on: () => go(pos + 1) }
-    ], "1-7 choose a step");
-    paintSide(a);
-    paintDesc();
-  }
-  return { a, paint, pick };
-}
-
-// ---- name and one line ----------------------------------------------------
-function wordsScreen() {
-  const form = el("form", "stack");
-  form.noValidate = true;
-  const text = (id, labelText, max, value) => {
-    const f = el("div", "field");
-    const l = el("label", "", labelText); l.htmlFor = id;
-    const i = el("input"); i.type = "text"; i.id = id; i.maxLength = max; i.value = value || ""; i.autocomplete = "off";
-    f.append(l, i);
-    return { f, i };
-  };
-  const name = text("w-name", "Give your prediction a name", 40, state.name);
-  const because = text("w-because", "I predict this because", 120, state.because);
-
-  const roleBox = el("div", "field");
-  roleBox.setAttribute("role", "radiogroup");
-  roleBox.append(el("div", "legend", "I work as"));
-  const roles = el("div", "ticks-inline");
-  ["designer", "engineer", "other"].forEach(r => {
-    const l = el("label", "tick");
-    const i = el("input"); i.type = "radio"; i.name = "role"; i.value = r; i.checked = state.role === r;
-    i.addEventListener("change", () => { state.role = r; });
-    l.append(i, el("span", "", r));
-    roles.appendChild(l);
-  });
-  roleBox.appendChild(roles);
-  const tick = (labelText, key) => {
-    const l = el("label", "tick");
-    const i = el("input"); i.type = "checkbox"; i.checked = state[key];
-    i.addEventListener("change", () => { state[key] = i.checked; });
-    l.append(i, el("span", "", labelText));
-    return l;
-  };
-  const ticks = stack("stack--s",
-    tick("I live in the Netherlands.", "livesNL"),
-    tick("My marks and my words may be shown, without my name, in a master's research publication.", "consent"));
-  const paper = text("w-paper", "Paper card number, if you hold one", 3, state.paper);
-  paper.i.inputMode = "numeric";
-
-  const keep = () => { state.name = name.i.value; state.because = because.i.value; state.paper = paper.i.value; };
-  form.append(el("h2", "big", "Name your prediction"), name.f, because.f, roleBox, ticks, paper.f,
-    el("p", "muted", "Please leave out your own name and contact details. The booth never keeps them."));
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    keep();
-    if (!complete(state)) { go(1); return; }
-    const no = parseInt(state.paper, 10);
-    const saved = add({ ...state, no: Number.isInteger(no) && no > 0 ? no : null });
-    const card = saved || { ...state, at: new Date().toISOString() };
-    state = fresh();
-    showResult(card, saved ? { saved: true } : { saved: false, label: "NOT SAVED", title: "Your view", note: "This browser refused to save the answer, so it is shown once and not kept." });
-  });
-
-  mount("Last step", form);
-  setKeys([
-    { label: "Back", kbd: "Esc", role: "back", on: () => { keep(); go(pos - 1); } },
-    { label: "Donate my view", go: true, on: () => form.requestSubmit() }
-  ]);
-  paintSide(null);
-  name.i.focus({ preventScroll: true });
-}
-
-// ---- result: the receipt in its column, the answer as dots beside it -------
 function showResult(card, meta) {
   view = null;
-  pos = 0;
   const pad3 = n => String(n).padStart(3, "0");
   const copyBox = el("input"); copyBox.type = "checkbox"; copyBox.checked = pref.get("booth-copy", "0") === "1";
-  const copy = el("label", "tick");
-  copy.append(copyBox, el("span", "", "Print the booth's copy for the roll under the receipt"));
+  const copy = el("label", "tick small");
+  copy.append(copyBox, el("span", "", "Also print the booth's copy for the roll"));
 
+  const paper = el("div", "paper");
   const fill = () => {
     const parts = receiptParts(card, { label: meta.saved ? null : (meta.label || "EXAMPLE - NOT SAVED"), boothCopy: copyBox.checked });
-    side.textContent = "";
-    side.appendChild(receiptView(parts));
-    side.scrollTop = 0;
+    paper.textContent = "";
+    paper.appendChild(receiptView(parts));
     armPrint(parts.map(p => p.t));
   };
   copyBox.addEventListener("change", () => { pref.set("booth-copy", copyBox.checked ? "1" : "0"); fill(); });
   fill();
 
-  const head = meta.saved
-    ? sec(el("h2", "big", "Thank you."), el("p", "", "Your view is donated and saved in this browser as No " + pad3(card.no) + ". The receipt holds your marks, your scenario text and the price of your prediction."))
-    : sec(el("h2", "big", meta.title), el("p", "", meta.note), meta.preset != null ? presetChips(meta.preset) : null);
-  const pattern = el("section", "sec");
-  pattern.append(stack("stack--s", el("h2", "sec__h", "The same answer as dots"), legend()), patternNamed(card));
-  const printing = sec(el("h2", "sec__h", "Printing"),
-    el("p", "", "The receipt is 32 characters wide, for a 58 mm receipt printer. Any printer works: choose the narrow paper in the print dialog."), copy);
+  const again = () => {
+    if (meta.saved) { location.href = "index.html"; return; }     // next visitor: back to the landing page
+    state = fresh(); history.replaceState(null, "", location.pathname); go(0);
+  };
+  const actions = el("div", "actions");
+  if (meta.saved) actions.append(button("Print receipt", "btn", "print", () => window.print()), button("Next visitor: start again", "linkbtn", "", again));
+  else actions.append(button("Answer yourself", "btn", "next", again), button("Print this receipt", "linkbtn", "print", () => window.print()));
+  const see = link("index.html#explore", "See all cards"); see.className = "linkbtn";
+  actions.append(see);
 
-  mount(meta.saved ? "Donated, No " + pad3(card.no) : "Example, not saved", head, pattern, printing);
-  const again = () => { state = fresh(); history.replaceState(null, "", location.pathname); go(meta.saved ? 0 : 1); };
-  setKeys([
-    { label: "Print receipt", kbd: "P", role: "print", on: () => window.print() },
-    { label: meta.saved ? "Next visitor: start again" : "Answer yourself", kbd: "Enter", go: true, role: "next", on: again },
-    { label: "See all cards", href: "explore.html" }
-  ]);
+  const top = meta.saved
+    ? stack("", stack("stack--s", el("div", "kicker", "Donated, No " + pad3(card.no)), el("h1", "big", "Thank you. Here is your receipt.")), actions)
+    : stack("", stack("stack--s", el("div", "kicker", "Example, not saved"), el("h1", "big", meta.title)),
+        el("p", "lead", meta.note), meta.preset != null ? presetChips(meta.preset) : null, actions);
+  mount(stack("stack--l", top, stack("stack--s", paper, copy)));
 }
 
 function usePreset(k) {
   const pr = B.presets[k];
   if (!pr) return;
-  showResult({ today: [4, 4, 4, 4], prediction: pr.pred.slice(), years: 3, at: new Date().toISOString() },
+  const years = 2;
+  showResult({ today: [4, 4, 4, 4], prediction: pr.pred.slice(), years, at: new Date().toISOString() },
     { saved: false, preset: k, title: pr.name,
-      note: "A ready-made answer. Today is set to the middle of every scale and the prediction to this preset, three years from now. Nothing is saved." +
+      note: "A ready-made answer: today sits in the middle of every scale, the prediction is this preset, " + B.time.phrases[years - 1] + "." +
         (pr.text ? " From the zine: " + pr.text : "") });
 }
 
-// ---- keys: Enter = next, Esc = back, 1-7 = choose a step, P = print --------
+// ---- keys (quiet helpers): Enter = the main action, Esc = back, 1-7 = choose a step ----
 document.addEventListener("keydown", e => {
   if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
   const inField = e.target instanceof Element && e.target.matches("input, textarea, select");
-  const press = role => { const b = keys.querySelector('[data-role="' + role + '"]:not([disabled])'); if (b) { e.preventDefault(); b.click(); } };
+  const press = role => { const b = screen.querySelector('[data-role="' + role + '"]:not([disabled])'); if (b) { e.preventDefault(); b.click(); } };
   if (e.key === "Escape") press("back");
   if (inField) return;
   if (e.key === "Enter" && !(e.target instanceof Element && e.target.closest("button, a"))) press("next");
   if (/^[1-7]$/.test(e.key) && view) { e.preventDefault(); view.pick(parseInt(e.key, 10)); }
-  if ((e.key === "p" || e.key === "P")) press("print");
 });
 
-// ?m=343566374 opens an answer (today, prediction, years) without saving it; ?preset=3 opens a preset.
+// ?m=343566372 opens an answer without saving it: four digits for today, four for the
+// prediction, one for the step on the time frame (1 to 5). ?preset=3 opens a ready-made answer.
 const qs = new URLSearchParams(location.search);
 const digits = (qs.get("m") || "").replace(/[^1-7]/g, "").split("").map(Number);
-if (digits.length === 9) {
+if (digits.length === 9 && digits[8] <= B.time.labels.length) {
   showResult({ today: digits.slice(0, 4), prediction: digits.slice(4, 8), years: digits[8], at: new Date().toISOString() },
     { saved: false, title: "An answer from a link", note: "Opened from a link. Nothing is saved." });
 } else if (qs.get("preset") !== null && B.presets[parseInt(qs.get("preset"), 10)]) {

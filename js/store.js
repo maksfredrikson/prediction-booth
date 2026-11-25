@@ -1,6 +1,8 @@
 // Answers stay in this browser (localStorage). Export and import as a JSON file.
 // A card holds marks and words, never a name or contact detail.
-const KEY = "prediction-booth-cards-v1";
+import { BOOTH } from "./content.js";
+
+const KEY = "prediction-booth-cards-v2";   // v2: years is a step on the five-step time frame
 
 const int17 = v => Number.isInteger(v) && v >= 1 && v <= 7;
 const str = (v, max) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, max) : "");
@@ -9,7 +11,8 @@ const str = (v, max) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().s
 export function clean(c) {
   if (!c || !Array.isArray(c.today) || !Array.isArray(c.prediction)) return null;
   if (c.today.length !== 4 || c.prediction.length !== 4) return null;
-  if (!c.today.every(int17) || !c.prediction.every(int17) || !int17(c.years)) return null;
+  if (!c.today.every(int17) || !c.prediction.every(int17)) return null;
+  if (!Number.isInteger(c.years) || c.years < 1 || c.years > BOOTH.time.labels.length) return null;
   return {
     id: str(c.id, 60) || newId(),
     no: Number.isInteger(c.no) && c.no > 0 ? c.no : null,
@@ -17,7 +20,6 @@ export function clean(c) {
     today: c.today.slice(),
     prediction: c.prediction.slice(),
     years: c.years,
-    name: str(c.name, 40),
     because: str(c.because, 120),
     role: ["designer", "engineer", "other"].includes(c.role) ? c.role : null,
     livesNL: c.livesNL === true,

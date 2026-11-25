@@ -1,8 +1,8 @@
 // Offline cache. Network first, so a new version shows at once when online;
 // the cached copy answers when the network is off or slow.
-const CACHE = "prediction-booth-v3";
+const CACHE = "prediction-booth-v7";
 const ASSETS = [
-  "./", "index.html", "explore.html", "about.html", "css/site.css",
+  "./", "index.html", "survey.html", "about.html", "explore.html", "css/site.css",
   "js/content.js", "js/compose.js", "js/dots.js", "js/pattern.js", "js/scale.js", "js/store.js", "js/receipt.js",
   "js/chrome.js", "js/survey.js", "js/explore.js", "js/about.js", "js/invented.js"
 ];
@@ -20,7 +20,7 @@ self.addEventListener("fetch", e => {
     const cache = await caches.open(CACHE);
     try {
       const fresh = await Promise.race([
-        fetch(e.request),
+        fetch(e.request, { cache: "no-cache" }),   // always ask the server first, so edits show at once
         new Promise((_, no) => setTimeout(() => no(new Error("slow")), 3000))
       ]);
       if (fresh && fresh.ok) cache.put(e.request, fresh.clone());

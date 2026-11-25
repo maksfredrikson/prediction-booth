@@ -72,13 +72,12 @@ export const BOOTH = {
       toRight: "Decisions can be checked, and nobody who was measured was asked."
     }
   ],
-  // the same seven-step grid as the axes
+  // The time frame: asked first, five steps. labels are years from now.
   time: {
-    q: "How soon will it get there?",
-    l: "1 year", r: "7 years",
-    labels: ["1", "2", "3", "4", "5", "6", "7"],
-    phrases: ["within a year", "in about two years", "in about three years", "in about four years",
-              "in about five years", "in about six years", "in about seven years"]
+    q: "How far ahead do you predict?",
+    l: "5 years", r: "30 years",
+    labels: ["5", "10", "15", "25", "30"],
+    phrases: ["in five years", "in ten years", "in fifteen years", "in twenty-five years", "in thirty years"]
   },
   // Chips for exploring the screen without a card. They set the prediction row.
   // The first three are the two edges and the middle of the card; B and C are the zine's

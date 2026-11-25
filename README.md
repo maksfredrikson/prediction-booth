@@ -1,12 +1,15 @@
 # Prediction Booth
 
-Donate your view of the Netherlands. A visitor marks how they see the country today and where
-they predict it is heading, on four questions with seven steps each, plus how many years it
-will take. The site turns the answer into a pattern of dots, a short scenario text and a
-donation receipt.
+Donate your view of the Netherlands. A visitor says how far ahead they predict, then marks on
+four questions how they see the country today and where they predict it is heading. The site
+turns the answer into a donation receipt: the marks, a short scenario text and what the
+prediction costs.
 
 A plain static site: HTML, CSS and JavaScript modules. No framework, no build step, no server
 code. Nothing is sent anywhere; answers stay in the visitor's browser.
+
+Live: https://maksfredrikson.github.io/prediction-booth/ (GitHub Pages serves the `main` branch,
+so every push to `main` updates the public page).
 
 ## Run it
 
@@ -22,28 +25,29 @@ network off.
 
 | Page | File | What it does |
 |---|---|---|
-| Survey | `index.html`, `js/survey.js` | One question per screen: today, then the prediction, on the same seven-step scale. Then the years, a name and one line. The receipt in the left column fills in while you answer and each of its rows jumps to that question. |
-| Explore | `explore.html`, `js/explore.js` | The field (a bar chart per question: today up, prediction down) and the roll (every card in order of arrival, as one strip). Save cards to a file, add cards from a file. |
+| Landing and Explore | `index.html`, `js/explore.js` | One scrolling page. On top: the invitation to the survey. Below: the field (a bar chart per question, today up and prediction down), the roll (every card in order of arrival), five ready-made answers, and saving or adding cards as a file. |
+| Survey | `survey.html`, `js/survey.js` | Made for touch. First the time frame (5, 10, 15, 25 or 30 years). Then four questions, each on two lines: today and the prediction; the meaning of a chosen step shows under its line. Then one last step: consent, work, lives in the Netherlands, one line of reasoning. Then the receipt on its own screen. |
 | About | `about.html`, `js/about.js` | The towel story, then every sentence the scenario text can be made of. |
 
 ## Look
 
-The whole interface follows the receipt: one monospace size, packed narrow columns, rules
-made of = and -, ink on paper. Two framed panels sit side by side with a menu bar above and a
-bar of keys below. Today is a big halftone dot, the prediction a small solid dot.
+A plain navigation column on the left (on top on a phone) and one wide working area. One kind
+of information and one clear action per screen. Type and marks follow the receipt: one
+monospace face, no colour, dark by default (the small half dot in the navigation switches to
+light). Today is a big halftone dot, the prediction a small solid dot.
 
-Keys on the Survey page: Enter = next, Esc = back, 1 to 7 = choose a step, P = print.
+Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 1 to 7 = choose a step.
 
 ## Where things live
 
 - `js/content.js` is the single content source: the four questions, the 28 step descriptions, the
-  price lines, the presets, the years phrases and the take-home questions. Site, receipt and
-  paper card all read it. Edit text there and nowhere else.
-- `js/compose.js` assembles the scenario text from the chosen steps. No AI, no network.
+  price lines, the time frame, the ready-made answers and the take-home questions. Site, receipt
+  and paper card all read it. Edit text there and nowhere else.
+- `js/compose.js` assembles the scenario text from the chosen steps, and generates a card's name
+  from the price of its biggest move. No AI, no network.
 - `js/receipt.js` builds the receipt: 32 characters per line, plain ASCII, for a 58 mm thermal
-  printer. It prints through the browser's print dialog.
-- `js/scale.js` is the seven-dot control; `js/pattern.js` draws an answer as five labelled rows
-  (question, step numbers and the two end labels on every row).
+  printer. On screen it is one unbroken strip; it prints through the browser's print dialog.
+- `js/scale.js` is the dot control; `js/pattern.js` draws an answer as five labelled rows.
 - `js/store.js` keeps answers in the browser (localStorage) and handles the JSON file.
 - `js/invented.js` holds made-up cards so Explore is not empty before there are visitors. The
   page labels them as invented.
@@ -53,11 +57,11 @@ Keys on the Survey page: Enter = next, Esc = back, 1 to 7 = choose a step, P = p
 
 ## Links that open an answer
 
-- `index.html?m=343566374` opens an answer without saving it: four digits for today, four for
-  the prediction, one for the years.
-- `index.html?preset=3` opens a preset (0 to 4).
+- `survey.html?m=343566372` opens an answer without saving it: four digits for today, four for
+  the prediction, one for the step on the time frame (1 to 5).
+- `survey.html?preset=3` opens a ready-made answer (0 to 4).
 
 ## What is kept
 
-Marks, the name a visitor gives their prediction, one line of reasoning and three ticks. Never
-a name or a contact detail.
+Marks, the time frame, one line of reasoning, two answers about the visitor (work, lives in the
+Netherlands) and their consent answer. Never a name or a contact detail.

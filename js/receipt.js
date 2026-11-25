@@ -1,7 +1,7 @@
 // The receipt: 32 characters per line, plain ASCII, so it survives a raw 58 mm thermal printer.
 // The same lines are shown on screen and sent to the browser's print dialog.
 import { BOOTH as B } from "./content.js";
-import { compose, complete, list } from "./compose.js";
+import { compose, titleOf, moves } from "./compose.js";
 
 export const W = 32;
 
@@ -45,114 +45,105 @@ const when = iso => {
 };
 
 // One row of seven: ( ) today, * prediction, (*) both on the same step.
-export function marksRow(today, pred) {
+export function marksRow(today, pred, n = 7) {
   let s = "  ";
-  for (let i = 1; i <= 7; i++) s += today === i && pred === i ? "(*) " : today === i ? "( ) " : pred === i ? " *  " : " .  ";
+  for (let i = 1; i <= n; i++) s += today === i && pred === i ? "(*) " : today === i ? "( ) " : pred === i ? " *  " : " .  ";
   return s.trimEnd();
 }
 const NUMS = "   1   2   3   4   5   6   7";
+// the time frame's own labels under its row: "   5  10  15  25  30"
+export const yearsLabels = () => ("  " + B.time.labels.map(l => (l.length === 1 ? " " + l + "  " : " " + l + " ")).join("")).trimEnd();
+export const yearsRows = card => [marksRow(null, card.years, B.time.labels.length), yearsLabels() + " yrs"];
 
-export const NUMS_ROW = NUMS;
-export const center32 = s => center(s);
-export const rule32 = ch => rule(ch);
-export const lr32 = (l, r) => lr(l, r);
 
-// The receipt as lines: [{ t: text, row: 0-4 when the line belongs to a row of marks }].
-// card: a saved card, marks only, or an answer still being given (draft: true), where
-// unmarked rows stay empty and the text grows as rows are marked.
+// The receipt as lines: [{ t: text, s: section number, k: "total" for the total block }].
+// card: a saved card, or marks only. opts.label replaces the number line for examples.
 export function receiptParts(card, opts = {}) {
-  const done = complete(card);
-  const text = done ? compose(card) : null;
+  const text = compose(card);
   const P = [];
-  const add = (t, row = null) => P.push({ t: String(t).slice(0, W), row });
-  const all = (lines, row = null) => lines.forEach(l => add(l, row));
+  let sec = 0, kind = null;
+  const add = t => P.push({ t: String(t).slice(0, W), s: sec, k: kind });
+  const all = lines => lines.forEach(add);
+  const cut = k => { sec++; kind = k || null; };
 
   add(rule("="));
   add(center(ascii(B.title).toUpperCase()));
   all(wrap(B.line, 26).map(center));
   add(rule("="));
   add("DONATION RECEIPT");
-  if (opts.draft) add(lr("No ---", "not given yet"));
-  else if (opts.label) { add(ascii(opts.label)); add(when(card.at)); }
+  if (opts.label) { add(ascii(opts.label)); add(when(card.at)); }
   else add(lr("No " + pad3(card.no || 0), when(card.at)));
-  if (card.name && !opts.draft) all(wrap('Name: "' + card.name + '"', W, "  "));
-  add(rule("-"));
+  cut(); add(rule("-"));
   add("MARKS   ( ) today  * prediction");
+  all(wrap(B.time.q, W, "  "));
+  all(yearsRows(card));
   add(NUMS);
   B.axes.forEach((ax, a) => {
-    all(wrap((a + 1) + " " + ax.q, W, "  "), a);
-    add(marksRow(card.today[a], card.prediction[a]), a);
+    all(wrap((a + 1) + " " + ax.q, W, "  "));
+    add(marksRow(card.today[a], card.prediction[a]));
   });
-  all(wrap("5 " + B.time.q + " (years)", W, "  "), 4);
-  add(marksRow(null, card.years), 4);
   add(NUMS);
-  add(rule("-"));
+  cut(); add(rule("-"));
   add("YOUR VIEW");
-  if (text) {
-    all(wrap(text.today));
-    add("");
-    all(wrap(text.prediction));
-  } else {
-    const got = card.today.map((v, a) => (v ? B.axes[a].steps[v - 1].t : null)).filter(Boolean);
-    if (!got.length) all(wrap("Your text starts here with your first mark."));
-    else all(wrap("You see " + B.place + " today as a country where " + (got.length === 4 ? list(got) + "." : got.join("; ") + " ...")));
-  }
-  add(rule("-"));
-  add("PRICE");
-  all(wrap(text ? text.price : "..."));
-  if (opts.draft) { add(rule("=")); return P; }
-  add(rule("-"));
+  all(wrap(text.today));
+  add("");
+  all(wrap(text.prediction));
+  cut(); add(rule("-"));
+  const d = moves(card);
+  add(lr("MOVED", d.map((v, a) => (a + 1) + ":" + (v > 0 ? "+" + v : v === 0 ? " 0" : String(v))).join("  ")));
+  if (text.priceLead) add(lr("DUE", B.time.phrases[card.years - 1]));
+  cut("total"); add(rule("="));
+  add("TOTAL");
+  all(wrap(text.price));
+  add(rule("="));
+  cut();
   add("GIVEN");
   add("1 x view of today");
   add("1 x prediction");
-  if (card.name) add("1 x name");
   if (card.because) all(wrap('1 x reason: "' + card.because + '"', W, "  "));
   add(lr("PAID", "EUR 0.00"));
   add("");
   add("KEPT BY THE BOOTH");
-  all(wrap(opts.label ? "Nothing: this one is an example." : "Your marks, the name you gave them and your reason. Never your name."));
-  add(rule("-"));
+  all(wrap(opts.label ? "Nothing: this one is an example." : "Your marks, your reason and your two answers. Never your name."));
+  if (!opts.label && typeof card.consent === "boolean") {
+    add("");
+    add("CONSENT");
+    all(wrap("Shown without my name in a master's research publication:"));
+    add(lr("", card.consent ? "YES" : "NO"));
+  }
+  cut(); add(rule("-"));
   add("TO KEEP TALKING");
   all(wrap("with someone whose card looks like yours or nothing like it:"));
   B.talk.forEach((q, i) => all(wrap((i + 1) + ". " + q, W, "   ")));
-  add(rule("="));
+  cut(); add(rule("="));
   add(center("Thank you for your donation."));
   add(center("No money changed hands."));
   add(rule("="));
   if (opts.boothCopy) {
-    add(""); add("- - - - - - cut here - - - - - -"); add("");
+    cut(); add(""); add("- - - - - - cut here - - - - - -"); add("");
     add(lr("BOOTH COPY", opts.label ? "example" : "No " + pad3(card.no || 0)));
-    if (card.name) all(wrap('"' + card.name + '"', W));
+    all(wrap(titleOf(card), W));
+    all(yearsRows(card));
     add(NUMS);
     B.axes.forEach((_, a) => add(marksRow(card.today[a], card.prediction[a])));
-    add(marksRow(null, card.years));
   }
   return P;
 }
 
 export const receiptLines = (card, opts = {}) => receiptParts(card, opts).map(p => p.t);
 
-// The receipt on screen. With onRow, each row of marks is a button: the receipt is the navigation.
-export function receiptView(parts, { active = null, onRow = null, canGo = () => true } = {}) {
+// The receipt on screen: one unbroken strip, the same lines as the print. The total is set bold.
+export function receiptView(parts) {
   const box = document.createElement("div");
   box.className = "receipt";
-  let group = null, groupRow = null;
+  box.setAttribute("role", "document");
+  box.setAttribute("aria-label", "Receipt");
+  let group = null, cur = null;
   parts.forEach(p => {
+    if (p.s !== cur) { group = document.createElement("div"); group.className = "rsec" + (p.k ? " rsec--" + p.k : ""); box.appendChild(group); cur = p.s; }
     const line = document.createElement("span");
     line.className = "rl";
     line.textContent = p.t;
-    if (p.row == null || !onRow) { group = null; groupRow = null; box.appendChild(line); return; }
-    if (groupRow !== p.row) {
-      group = document.createElement("button");
-      group.type = "button";
-      group.className = "rrow" + (p.row === active ? " is-now" : "");
-      group.disabled = !canGo(p.row);
-      if (p.row === active) group.setAttribute("aria-current", "step");
-      const r = p.row;
-      group.addEventListener("click", () => onRow(r));
-      groupRow = p.row;
-      box.appendChild(group);
-    }
     group.appendChild(line);
   });
   return box;

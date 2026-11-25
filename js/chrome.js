@@ -1,15 +1,15 @@
-// Shared by every page: the theme switch and the offline cache.
+// Shared by every page: the light/dark switch and the offline cache.
+// The site is dark by default; the small dot in the navigation switches to light and back.
 const root = document.documentElement;
 const btn = document.querySelector(".theme");
-const dark = () => (root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
-const label = () => { if (btn) btn.textContent = dark() ? "Light" : "Dark"; };
+const light = () => root.dataset.theme === "light";
+const label = () => { if (btn) btn.setAttribute("aria-label", light() ? "Switch to dark" : "Switch to light"); };
 if (btn) {
   btn.addEventListener("click", () => {
-    root.dataset.theme = dark() ? "light" : "dark";
-    try { localStorage.setItem("prediction-booth-theme", root.dataset.theme); } catch (e) {}
+    if (light()) delete root.dataset.theme; else root.dataset.theme = "light";
+    try { localStorage.setItem("prediction-booth-theme", light() ? "light" : "dark"); } catch (e) {}
     label();
   });
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", label);
   label();
 }
 

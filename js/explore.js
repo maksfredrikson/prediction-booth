@@ -1,12 +1,12 @@
-// Explore: the field (how many people chose each step, as a mirrored bar chart per question)
-// and the roll (every card in order of arrival, as one long receipt strip in the left column).
+// The landing page's Explore part: the field (how many people chose each step, as a mirrored bar chart per question)
+// and the roll (every card in order of arrival, each as a few receipt lines).
 import { BOOTH as B } from "./content.js";
-import { compose } from "./compose.js";
+import { compose, titleOf } from "./compose.js";
 import { el, legend, rowNames } from "./dots.js";
-import { patternNamed, poles, stepSentence } from "./pattern.js";
+import { patternNamed, poles, stepSentence, stepLabels } from "./pattern.js";
 import { load, exportFile, importFile, clear, pref } from "./store.js";
 import { INVENTED } from "./invented.js";
-import { receiptLines, armPrint, disarmPrint, marksRow, wrap, W, NUMS_ROW, center32, rule32 } from "./receipt.js";
+import { receiptLines, armPrint, disarmPrint, marksRow, yearsRows, wrap, W } from "./receipt.js";
 
 const $ = id => document.getElementById(id);
 const pad3 = n => String(n).padStart(3, "0");
@@ -32,7 +32,8 @@ function refresh() {
 function field() {
   const box = $("field");
   box.textContent = "";
-  const counts = rowNames.map(() => Array.from({ length: 7 }, () => ({ t: 0, p: 0 })));
+  if (!cards.length) { box.append(el("p", "muted", "No cards to show. Answer the survey, or switch the invented cards on.")); return; }
+  const counts = rowNames.map((_, r) => Array.from({ length: stepLabels(r).length }, () => ({ t: 0, p: 0 })));
   cards.forEach(c => {
     c.today.forEach((v, a) => counts[a][v - 1].t++);
     c.prediction.forEach((v, a) => counts[a][v - 1].p++);
@@ -41,9 +42,12 @@ function field() {
   const max = Math.max(1, ...counts.flat().map(x => Math.max(x.t, x.p)));
 
   counts.forEach((cells, r) => {
-    const row = el("div", "prow");
-    const name = el("div", "prow__name", (r + 1) + " " + rowNames[r]);
+    const chart = el("div", "chart");
+    const name = el("div", "chart__name", (r + 1) + " " + rowNames[r]);
     const bars = el("div", "bars" + (r === 4 ? " bars--time" : ""));
+    bars.style.setProperty("--n", cells.length);
+    const cap = el("div", "chart__cap");
+    cap.setAttribute("aria-live", "polite");
     cells.forEach((x, k) => {
       const b = el("button", "bcell");
       b.type = "button";
@@ -52,59 +56,41 @@ function field() {
       if (r !== 4 && x.t > 0) { const i = el("i"); i.style.setProperty("--s", x.t / max); up.append(el("b", "", String(x.t)), i); }
       if (x.p > 0) { const i = el("i"); i.style.setProperty("--s", x.p / max); down.append(i, el("b", "", String(x.p))); }
       b.append(up, down);
-      const show = () => { box.querySelectorAll(".is-on").forEach(n => n.classList.remove("is-on")); b.classList.add("is-on"); describe(r, k + 1, x); };
+      const show = () => {
+        bars.querySelectorAll(".is-on").forEach(n => n.classList.remove("is-on"));
+        b.classList.add("is-on");
+        cap.textContent = "";
+        cap.append(el("b", "", (r === 4 ? "" : "Step " + (k + 1) + ": ") + stepSentence(r, k + 1)), document.createElement("br"),
+          r === 4 ? "Predicted by " + people(x.p) + "." : "Today: " + people(x.t) + ". Prediction: " + people(x.p) + ".");
+      };
       b.addEventListener("mouseenter", show);
       b.addEventListener("focus", show);
       b.addEventListener("click", show);
       bars.appendChild(b);
     });
     const nums = el("div", "bnums");
-    for (let i = 1; i <= 7; i++) nums.appendChild(el("span", "", String(i)));
-    row.append(name, bars, nums, poles(r));
-    box.appendChild(row);
+    nums.style.setProperty("--n", cells.length);
+    stepLabels(r).forEach(l => nums.appendChild(el("span", "", l)));
+    chart.append(name, bars, nums, poles(r), cap);
+    box.appendChild(chart);
   });
-
-  const d = $("field-desc");
-  d.textContent = "";
-  d.append(el("p", "", cards.length ? "Touch a step to read what it stands for and how many chose it." : "No cards to show. Answer the survey, or switch the invented cards on."));
 }
 
-function describe(r, step, x) {
-  const d = $("field-desc");
-  d.textContent = "";
-  d.append(el("div", "desc__step", "Row " + (r + 1) + ", step " + step + " of 7"));
-  d.append(el("p", "", stepSentence(r, step)));
-  d.append(el("p", "", r === 4 ? "Predicted by " + people(x.p) + "." : "Today: " + people(x.t) + ". Prediction: " + people(x.p) + "."));
-}
-
-// ---- the roll: one long strip, a few lines per card ----------------------------
+// ---- the roll: a few receipt lines per card ------------------------------------
 function roll() {
-  const side = $("side");
-  side.textContent = "";
-  const strip = el("div", "receipt");
-  const line = (t, cls) => strip.appendChild(el("span", "rl" + (cls ? " " + cls : ""), t));
-  line(rule32("="));
-  line(center32("THE ROLL"));
-  line(center32("every card, in order of arrival"));
-  line(rule32("="));
-  line("( ) today  * prediction");
-  line(NUMS_ROW);
-  if (!cards.length) { line(rule32("-")); line("The roll is empty."); }
+  const box = $("roll");
+  box.textContent = "";
+  if (!cards.length) { box.append(el("p", "muted", "The roll is empty.")); return; }
   cards.forEach(c => {
-    line(rule32("-"));
-    const b = el("button", "rrow");
+    const b = el("button", "rollcard");
     b.type = "button";
-    const add = t => b.appendChild(el("span", "rl", t));
-    add(c.invented ? "INVENTED" : "No " + pad3(c.no || 0));
-    wrap('"' + (c.name || "Unnamed") + '"', W).forEach(add);
-    c.today.forEach((t, a) => add(marksRow(t, c.prediction[a])));
-    add(marksRow(null, c.years));
+    const lines = [c.invented ? "INVENTED" : "No " + pad3(c.no || 0), ...wrap(titleOf(c), W), "",
+      ...c.today.map((t, a) => marksRow(t, c.prediction[a])), ...yearsRows(c)];
+    b.textContent = lines.join("\n");
+    b.setAttribute("aria-label", (c.invented ? "Invented card: " : "Card " + (c.no || "") + ": ") + titleOf(c));
     b.addEventListener("click", () => open(c));
-    strip.appendChild(b);
+    box.appendChild(b);
   });
-  line(rule32("="));
-  side.appendChild(strip);
-  $("side-title").textContent = "The roll, " + cards.length + (cards.length === 1 ? " card" : " cards");
 }
 
 const dialog = $("card");
@@ -113,27 +99,29 @@ function open(c) {
   dialog.textContent = "";
   const head = el("div", "dialog-head");
   const title = el("div", "stack stack--s");
-  const eyebrow = el("div", "");
-  if (c.invented) eyebrow.append(el("span", "tag", "invented"), " not a real visitor");
-  else eyebrow.textContent = "No " + pad3(c.no || 0);
-  const h = el("h2", "big", c.name || "Unnamed");
+  const kicker = el("div", "kicker");
+  if (c.invented) kicker.append(el("span", "tag", "invented"), " not a real visitor");
+  else kicker.textContent = "No " + pad3(c.no || 0);
+  const h = el("h2", "big", titleOf(c));
   h.id = "card-title";
-  title.append(eyebrow, h);
-  if (c.because) title.append(el("p", "", "Because: " + c.because));
-  const close = el("button", "btn btn--plain", "Close");
+  title.append(kicker, h);
+  if (c.because) title.append(el("p", "muted", "Because: " + c.because));
+  const close = el("button", "btn btn--plain btn--s", "Close");
   close.type = "button";
   close.addEventListener("click", () => dialog.close());
   head.append(title, close);
 
-  const scen = el("section", "sec text");
-  scen.append(el("p", "", text.today), el("p", "", text.prediction), el("p", "", (text.priceLead ? text.priceLead + " " : "") + text.price));
-  const pat = el("section", "sec");
-  pat.append(legend(), patternNamed(c));
   const top = el("section", "sec");
   top.append(head);
+  const scen = el("section", "sec text");
+  scen.append(el("p", "", text.today), el("p", "", text.prediction), el("p", "", (text.priceLead ? text.priceLead + " " : "") + text.price));
+  const pat = el("section", "sec stack");
+  const rows = el("div");
+  rows.append(patternNamed(c));
+  pat.append(legend(), rows);
   dialog.append(top, scen, pat);
   if (!c.invented) {
-    const print = el("button", "btn", "Print receipt");
+    const print = el("button", "btn btn--s", "Print receipt");
     print.type = "button";
     print.addEventListener("click", () => { armPrint(receiptLines(c, { boothCopy: pref.get("booth-copy", "0") === "1" })); window.print(); });
     const last = el("section", "sec");
@@ -171,6 +159,13 @@ $("clear").addEventListener("click", () => {
   clear();
   status("Deleted.");
   refresh();
+});
+
+// the ready-made answers open as example receipts on the survey page
+B.presets.forEach((pr, k) => {
+  const a = el("a", "chip", pr.name);
+  a.href = "survey.html?preset=" + k;
+  $("presets").appendChild(a);
 });
 
 refresh();

@@ -111,7 +111,7 @@
     const t = el("div", "axis time");
     t.appendChild(el("div", "q", TIME.q));
     const tdots = el("div", "dots");
-    for (let i = 1; i <= 7; i++) tdots.appendChild(el("div", "ring", String(i)));
+    TIME.labels.forEach(l => tdots.appendChild(el("div", "ring", l)));
     t.appendChild(tdots);
     const tp = el("div", "poles");
     tp.append(el("div", "", TIME.l), el("div", "", TIME.r));
