@@ -6,7 +6,7 @@ import { BOOTH as B } from "./content.js";
 export const list = parts =>
   parts.length === 1 ? parts[0] : parts.slice(0, -1).join("; ") + "; and " + parts[parts.length - 1];
 
-// s = { today: [1-5 x4], prediction: [1-5 x4], years: 1-5, the step on the time frame }
+// s = { today: [1-5 x4], prediction: [1-5 x4], years: 1-6, the stop on the years slider }
 export function compose(s) {
   const step = (a, v) => B.axes[a].steps[v - 1];
   const today = "You see " + B.place + " today as a country where " + list(s.today.map((v, a) => step(a, v))) + ".";
@@ -22,7 +22,7 @@ export function compose(s) {
   }
   const where = list(moved.map(m => step(m.a, s.prediction[m.a])));
   const rest = moved.length < B.axes.length ? " The rest stays as you see it now." : "";
-  const prediction = "You predict that " + B.time.phrases[s.years - 1] + " it will be a country where " + where + "." + rest;
+  const prediction = B.time.sentences[s.years - 1].replace("{where}", where) + rest;
 
   const far = Math.max(...moved.map(m => Math.abs(m.d)));
   const prices = moved.filter(m => Math.abs(m.d) === far).slice(0, 2)

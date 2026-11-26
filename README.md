@@ -26,7 +26,7 @@ network off.
 | Page | File | What it does |
 |---|---|---|
 | Landing and Explore | `index.html`, `js/explore.js` | One scrolling page. On top: the invitation to the survey. Below: a row of time frames that filters everything under it, the field (a bar chart per question, today up and prediction down, with the group's average move), the roll (every card in order of arrival). Saving cards to a file and adding cards from a file are hidden from visitors: open `index.html#data`. |
-| Survey | `survey.html`, `js/survey.js` | Made for touch. It opens on the framing line ("Where is technology taking the Netherlands?", the `frame` field of the content file, which may change per event) and the four questions named, then the time frame (5, 10, 15, 20 or 25 years) on the same screen; `survey.html?time=after` asks it after the questions instead, to compare. Then four questions on a five-step scale, each on two lines: today and the prediction; the meaning of a chosen step shows under its line. Then one last step: consent (required), one line of reasoning and a "tip" of data (how long they have lived in the Netherlands), both optional. Then the receipt on its own screen. |
+| Survey | `survey.html`, `js/survey.js` | Made for touch. It opens on the framing line ("Where is technology taking the Netherlands?", the `frame` field of the content file, which may change per event) with one short sentence (four questions, a prediction and not a wish), then the years on the same screen, as a slider from 0 to ∞ that settles on six stops (0, 5, 10, 25, 50, ∞); `survey.html?time=after` asks it after the questions instead, to compare. Then four questions on a five-step scale, each on two lines labelled "Today" and "In 10 years"; the meaning of a chosen step shows under its line. Then one last step: consent (required), one line of reasoning and a "tip" of data (how long they have lived in the Netherlands), both optional. Then the receipt on its own screen. |
 | Scenarios | `scenarios.html`, `js/scenarios.js` | The five ready-made predictions from the content file, chosen with a row of chips at the top: two scenarios from the zine, and the two edges and the middle of the scale. Each can be opened as an example receipt. |
 | About | `about.html` | The project description as written for the ThingsCon website, then the three questions of the research as a table, the three rules behind the scenario text, and a data policy, a disclaimer and terms of use in plain words. |
 
@@ -49,7 +49,7 @@ Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 
   and there is no network call.
 - `js/receipt.js` builds the receipt: 32 characters per line, plain ASCII, for a 58 mm thermal
   printer. On screen it is one unbroken strip; it prints through the browser's print dialog.
-- `js/scale.js` is the dot control; `js/pattern.js` draws an answer as five labelled rows.
+- `js/scale.js` is the five-dot control for the questions; `js/slider.js` is the years slider; `js/pattern.js` draws an answer as five labelled rows.
 - `js/store.js` keeps answers in the browser (localStorage) and handles the JSON file.
 - `js/invented.js` holds made-up cards so Explore is not empty before there are visitors. The
   page labels them as invented.
@@ -60,7 +60,7 @@ Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 
 ## Links that open an answer
 
 - `survey.html?m=232344532` opens an answer without saving it: four digits for today, four for
-  the prediction, one for the step on the time frame (each 1 to 5).
+  the prediction (each 1 to 5), one for the stop on the years slider (1 to 6).
 - `survey.html?preset=3` opens a ready-made answer (0 to 4).
 
 ## What is kept

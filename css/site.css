@@ -157,17 +157,35 @@ button, input { font: inherit; color: inherit; }
 .scale--read .scale__move { top: calc(var(--rowh) / 2 - 1.5px); height: 3px; }
 .scale--read + .poles { font-size: 13px; color: var(--muted); margin-top: 6px; }
 
+/* the years: one dot dragged along a line from 0 to ∞; it grows the further ahead it goes */
+.slider { user-select: none; -webkit-user-select: none; }
+.slider__track { position: relative; height: 114px; touch-action: pan-y; cursor: grab; }
+.slider.is-dragging .slider__track { cursor: grabbing; }
+.slider__track::before { content: ""; position: absolute; left: calc(100% / (var(--n) * 2)); right: calc(100% / (var(--n) * 2)); top: 44px; border-top: 1px dashed var(--ink); }
+.slider__stops { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.slider__stop { position: relative; }
+.slider__stop i { position: absolute; left: 50%; top: 44px; width: 10px; height: 10px; translate: -50% -50%; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--bg); }
+.slider__stop b { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-weight: 400; color: var(--muted); }
+.slider__stop.is-on b { color: var(--ink); font-weight: 700; }
+.slider__dot {
+  --size: calc(22px + var(--grow, 0) * 34px);
+  position: absolute; top: 44px; left: 0; width: var(--size); height: var(--size); translate: -50% -50%; border-radius: 50%;
+  border: 1.5px solid var(--ink); background: var(--bg); box-shadow: 0 0 0 3px var(--bg);
+  transition: left .28s cubic-bezier(.34, 1.56, .64, 1), width .28s, height .28s, scale .18s;
+}
+.slider.is-set .slider__dot { background: var(--ink); }
+.slider.is-dragging .slider__dot { transition: scale .18s; scale: 1.15; }
+.slider__track:focus-visible { outline-offset: 4px; }
+
 /* two lines, two questions: today above, the prediction below, on the same five steps.
    Made for touch: the meaning of the chosen step shows under its line. */
 .lines { display: flex; flex-direction: column; gap: 8px; }
-.line { display: grid; grid-template-columns: 220px minmax(0, 1fr); column-gap: 32px; align-items: start; }
+.line { display: grid; grid-template-columns: 170px minmax(0, 1fr); column-gap: 32px; align-items: start; }
 /* the name sits level with the dots; what the line asks follows under it */
 .line__label { padding-top: 32px; display: flex; flex-direction: column; gap: 4px; }
 .line__name { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; }
 .line__ask { color: var(--muted); font-size: 14px; line-height: 1.4; }
-.line__not { font-size: 14px; line-height: 1.4; font-weight: 700; }
-.topics { margin: 0; padding-left: 3ch; }
-.topics li + li { margin-top: 4px; }
+
 .line__cap { min-height: 4.6em; margin-top: 8px; }
 .line__cap p { font-size: 17px; line-height: 1.45; max-width: 42em; }
 .line__step { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
@@ -256,6 +274,7 @@ dialog.card::backdrop { background: rgba(0, 0, 0, .6); }
   .head .big { margin-top: 0; }
   .scale .dots { --rowh: 76px; --base: 13px; --big: min(46px, 11.5vw); --small: 22px; --pitch: 5px; }
   .scale--pred .dots { --small: min(30px, 8vw); }
+  .slider__dot { --size: calc(20px + var(--grow, 0) * 24px); }
   .line { grid-template-columns: minmax(0, 1fr); }
   .line__label { padding-top: 8px; flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 2px 14px; }
   .line--ends > div:first-child { display: none; }

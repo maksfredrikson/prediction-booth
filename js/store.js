@@ -2,10 +2,10 @@
 // A card holds marks and words, never a name or contact detail.
 import { BOOTH } from "./content.js";
 
-// v3: every scale has five steps. Cards from the seven-step version live under older keys and
-// are left alone, never mixed in. Each card also carries its scale, so a file from the old
-// version is refused on import.
-const KEY = "prediction-booth-cards-v3";
+// v4: every scale has five steps and the years are six stops from 0 to ∞. Cards from earlier
+// versions live under older keys and are left alone, never mixed in. Each card carries its
+// scale and the label of its years stop, so a file from an older version is refused on import.
+const KEY = "prediction-booth-cards-v4";
 
 const int17 = v => Number.isInteger(v) && v >= 1 && v <= BOOTH.steps;
 const str = (v, max) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, max) : "");
@@ -16,7 +16,8 @@ export function clean(c) {
   if (c.scale !== BOOTH.steps) return null;
   if (c.today.length !== 4 || c.prediction.length !== 4) return null;
   if (!c.today.every(int17) || !c.prediction.every(int17)) return null;
-  if (!Number.isInteger(c.years) || c.years < 1 || c.years > BOOTH.time.labels.length) return null;
+  const years = BOOTH.time.labels.indexOf(c.yearsLabel) + 1;   // the label decides, not the position
+  if (!years) return null;
   return {
     id: str(c.id, 60) || newId(),
     no: Number.isInteger(c.no) && c.no > 0 ? c.no : null,
@@ -25,7 +26,8 @@ export function clean(c) {
     prediction: c.prediction.slice(),
     scale: BOOTH.steps,
     frame: str(c.frame, 120),   // the framing line the answer was given under
-    years: c.years,
+    years,
+    yearsLabel: c.yearsLabel,
     because: str(c.because, 120),
     lived: BOOTH.lived.options.some(o => o[0] === c.lived) ? c.lived : null,
     consent: c.consent === true
@@ -47,7 +49,7 @@ function save(cards) {
 
 export function add(card) {
   const all = load();
-  const entry = clean({ ...card, scale: BOOTH.steps, id: newId(), at: new Date().toISOString() });
+  const entry = clean({ ...card, scale: BOOTH.steps, yearsLabel: BOOTH.time.labels[card.years - 1], id: newId(), at: new Date().toISOString() });
   if (!entry) return null;
   if (!entry.no) entry.no = all.reduce((m, c) => Math.max(m, c.no || 0), 0) + 1;
   all.push(entry);

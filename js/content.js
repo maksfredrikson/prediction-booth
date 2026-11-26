@@ -71,14 +71,25 @@ export const BOOTH = {
       toRight: "Decisions can be checked, and nobody who was measured was asked."
     }
   ],
+  // The years: a slider from 0 (it is already happening) to ∞ (it never gets there), which
+  // settles on six stops. Decided by the user on 26 Nov; the poster and the paper card use the
+  // same labels.
   time: {
     q: "How soon will it get there?",
     // the site asks the time frame first, before the questions, so it needs its own wording there
     ask: "How far ahead would you like to predict?",
-    // timescale changed by the user on 25 Nov, late evening: 5, 10, 15, 20, 25 years (was 1 to 5)
-    l: "5 years", r: "25 years",
-    labels: ["5", "10", "15", "20", "25"],
-    phrases: ["in about five years", "in about ten years", "in about fifteen years", "in about twenty years", "in about twenty-five years"]
+    l: "0: already happening", r: "∞: it never gets there",
+    labels: ["0", "5", "10", "25", "50", "∞"],
+    phrases: ["now", "in about five years", "in about ten years", "in about twenty-five years", "in about fifty years", "never"],
+    // the prediction sentence for each stop; {where} is replaced by the chosen steps
+    sentences: [
+      "You predict that it is already becoming a country where {where}.",
+      "You predict that in about five years it will be a country where {where}.",
+      "You predict that in about ten years it will be a country where {where}.",
+      "You predict that in about twenty-five years it will be a country where {where}.",
+      "You predict that in about fifty years it will be a country where {where}.",
+      "You predict that it is heading for a country where {where}, and that it never gets there."
+    ]
   },
   // Presets on the 1-5 scale. B and C are the zine's scenarios, their 1-7 positions
   // (B: 1,2,3,3  C: 5,5,6,6) rescaled to 1-5.

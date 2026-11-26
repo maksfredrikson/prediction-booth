@@ -48,10 +48,10 @@ function periods() {
     box.appendChild(b);
   };
   chip(0, "All", cards.length);
-  B.time.labels.forEach((l, k) => chip(k + 1, l + " years", cards.filter(c => c.years === k + 1).length));
+  B.time.labels.forEach((l, k) => chip(k + 1, k === 0 ? "Now" : k === B.time.labels.length - 1 ? "Never" : l + " years", cards.filter(c => c.years === k + 1).length));
   const n = shown().length;
   $("period-note").textContent = period
-    ? "Showing " + n + " of " + cards.length + " cards: predictions for " + B.time.phrases[period - 1].replace(/^in /, "") + " from now."
+    ? "Showing " + n + " of " + cards.length + " cards: predictions for " + B.time.phrases[period - 1] + "."
     : "Showing all " + cards.length + " cards. Choose a time frame to see how near and far predictions differ.";
 }
 

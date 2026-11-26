@@ -5,6 +5,7 @@ import { BOOTH as B } from "./content.js";
 import { complete } from "./compose.js";
 import { el } from "./dots.js";
 import { createScale } from "./scale.js";
+import { createSlider } from "./slider.js";
 import { add, addEmail, validEmail, pref } from "./store.js";
 import { receiptParts, receiptView, armPrint, disarmPrint } from "./receipt.js";
 
@@ -22,6 +23,7 @@ let state = fresh();
 // The order of screens: the time frame, the four questions, the last step.
 // survey.html?time=after asks the time frame after the questions instead, to compare the two.
 const TIME_FIRST = new URLSearchParams(location.search).get("time") !== "after";
+const REMIND = new URLSearchParams(location.search).get("remind") === "1";
 const FLOW = [];
 FLOW.push(TIME_FIRST ? { k: "time" } : { k: "frame" });   // either way the frame is read first
 B.axes.forEach((_, a) => FLOW.push({ k: "question", a }));
@@ -83,16 +85,19 @@ function scaleScreen(a) {
   actions.append(next, button("Back", "linkbtn", "back", () => go(pos - 1)));
 
   // one line = a label on the left, a scale, and under it what the chosen step means
-  const line = (key, labelText, promptText, keyCls, stress) => {
+  const line = (key, labelText, promptText, keyCls) => {
     const get = () => (isTime ? state.years : (key === "pred" ? state.prediction : state.today)[a]);
     const set = i => { if (isTime) state.years = i; else (key === "pred" ? state.prediction : state.today)[a] = i; };
     const row = el("div", "line");
     const label = el("div", "line__label");
     const name = el("div", "line__name");
     name.append(el("i", "key " + keyCls), document.createTextNode(labelText));
-    label.append(name, el("div", "line__ask", promptText));
-    if (stress) label.append(el("div", "line__not", stress));
-    const scale = createScale({ label: labelText + ": " + promptText, labels: isTime ? B.time.labels : undefined, onPick: i => { set(i); paint(); } });
+    label.append(name);
+    if (promptText) label.append(el("div", "line__ask", promptText));
+    // the years are one dot dragged from 0 to ∞; the questions are five dots to tap
+    const scale = isTime
+      ? createSlider({ label: B.time.q, labels: B.time.labels, texts: B.time.phrases, onPick: i => { set(i); paint(); } })
+      : createScale({ label: labelText + (promptText ? ": " + promptText : ""), onPick: i => { set(i); paint(); } });
     scale.el.classList.add("scale--" + key);
     const cap = el("div", "line__cap");
     cap.setAttribute("aria-live", "polite");
@@ -101,20 +106,25 @@ function scaleScreen(a) {
     row.append(label, body);
     const paintLine = () => {
       const i = get();
-      scale.set(key === "pred" ? { today: null, pred: i, mode: "pred" } : { today: i, pred: null, mode: "today" });
+      if (isTime) scale.set(i);
+      else scale.set(key === "pred" ? { today: null, pred: i, mode: "pred" } : { today: i, pred: null, mode: "today" });
       cap.textContent = "";
-      if (i == null) { cap.append(el("p", "muted", "Tap a step. Its meaning shows here.")); return; }
-      if (isTime) cap.append(el("div", "line__step", B.time.labels[i - 1] + " years"), el("p", "", "You predict where " + B.place + " will be " + B.time.phrases[i - 1] + "."));
+      if (i == null) { cap.append(el("p", "muted", isTime ? "Drag the dot." : "Tap a step. Its meaning shows here.")); return; }
+      if (isTime) cap.append(el("p", "", i === 1 ? "Now. It is already happening." : i === B.time.labels.length ? "Never. It does not get there."
+        : B.time.phrases[i - 1].charAt(0).toUpperCase() + B.time.phrases[i - 1].slice(1) + "."));
       else cap.append(el("div", "line__step", "Step " + i + " of " + B.steps), el("p", "", "A country where " + ax.steps[i - 1] + "."));
     };
     return { row, get, set, paintLine };
   };
-  // The prediction line says, every time, that it asks for a prediction and not a wish.
-  const when = state.years ? " " + B.time.phrases[state.years - 1] : "";
+  // The question screens stay concise: two short labels, "Today" and "In 10 years". That it is a
+  // prediction and not a wish is said once, at the start. survey.html?remind=1 adds one short
+  // reminder where the first prediction is placed, to compare.
+  const then = state.years ? "In " + B.time.labels[state.years - 1] + " years" : "Prediction";
+  const remind = REMIND && a === 0 ? "Your prediction, not your wish." : "";
   const lines = isTime
-    ? [line("pred", "Years", "from now", "key--pred")]
-    : [line("today", "Today", "Where it is now, as you see it.", "key--today"),
-       line("pred", "Prediction", "Where you think it is going" + when + ".", "key--pred", "Not where you want it to go.")];
+    ? [line("pred", "Years", "", "key--pred")]
+    : [line("today", "Today", "", "key--today"),
+       line("pred", then, remind, "key--pred")];
 
   // the two ends of the scale, named once above the lines
   const ends = el("div", "line line--ends");
@@ -148,13 +158,10 @@ function scaleScreen(a) {
   return { paint, pick };
 }
 
-// What the frame is followed by: the four questions, named before they are asked.
+// What the frame is followed by: one short sentence. It is the only place that says the
+// answer is a prediction and not a wish.
 function frameIntro() {
-  const topics = el("ol", "topics");
-  B.axes.forEach(x => topics.appendChild(el("li", "", x.q)));
-  return stack("stack--s read",
-    el("p", "lead", "Four questions follow. For each one you mark where the country is today and where you think it is going."),
-    topics);
+  return el("p", "lead read", "Four questions. For each one: where it is today, and where you think it is going, not where you want it to go.");
 }
 
 // The frame on a screen of its own: only used when the time frame is asked after the questions.
@@ -300,7 +307,7 @@ function showResult(card, meta) {
 function usePreset(k) {
   const pr = B.presets[k];
   if (!pr) return;
-  const years = 2;
+  const years = B.time.labels.indexOf("10") + 1 || 2;
   const mid = Math.ceil(B.steps / 2);
   showResult({ today: [mid, mid, mid, mid], prediction: pr.pred.slice(), years, frame: B.frame, at: new Date().toISOString() },
     { saved: false, preset: k, title: pr.name,

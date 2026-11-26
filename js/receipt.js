@@ -58,7 +58,7 @@ export function marksRow(today, pred, n = B.steps) {
 const labelsRow = labels => cells(labels.length, i => { const l = labels[i - 1]; return l.length === 1 ? " " + l + " " : l.length === 2 ? l + " " : l; });
 const NUMS = labelsRow(Array.from({ length: B.steps }, (_, i) => String(i + 1)));
 // the time frame: its row of marks, and its own labels underneath
-export const yearsRows = card => [marksRow(null, card.years, B.time.labels.length), labelsRow(B.time.labels)];
+export const yearsRows = card => [marksRow(null, card.years, B.time.labels.length), labelsRow(B.time.labels.map(l => (l === "\u221e" ? "inf" : l)))];
 
 // The receipt as lines: [{ t: text, s: section number, k: "total" for the total block }].
 // card: a saved card, or marks only. opts.label replaces the number line for examples.
