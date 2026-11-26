@@ -143,6 +143,8 @@ function open(c) {
   h.id = "card-title";
   title.append(kicker, h);
   if (c.because) title.append(el("p", "muted", "Because: " + c.because));
+  const wish = c.wish && B.wish.options.find(o => o[0] === c.wish);
+  if (wish) title.append(el("p", "muted", B.wish.q + " " + wish[1] + "."));
   const close = el("button", "btn btn--plain btn--s", "Close");
   close.type = "button";
   close.addEventListener("click", () => dialog.close());

@@ -2,10 +2,13 @@
 // A card holds marks and words, never a name or contact detail.
 import { BOOTH } from "./content.js";
 
-// v4: every scale has five steps and the years are six stops from 0 to ∞. Cards from earlier
-// versions live under older keys and are left alone, never mixed in. Each card carries its
-// scale and the label of its years stop, so a file from an older version is refused on import.
-const KEY = "prediction-booth-cards-v4";
+// v5: the questions of 26 Nov (the second one is new). Cards from earlier versions live under
+// older keys and are left alone, never mixed in. Each card carries its scale, the label of its
+// years stop and the list of questions it answered, so a file from an older version is refused
+// on import.
+const KEY = "prediction-booth-cards-v5";
+const QUESTIONS = BOOTH.axes.map(a => a.id).join(",");
+const oneOf = (v, set) => (set.options.some(o => o[0] === v) ? v : null);
 
 const int17 = v => Number.isInteger(v) && v >= 1 && v <= BOOTH.steps;
 const str = (v, max) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, max) : "");
@@ -13,7 +16,7 @@ const str = (v, max) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().s
 // Returns a clean card, or null if the marks are not valid.
 export function clean(c) {
   if (!c || !Array.isArray(c.today) || !Array.isArray(c.prediction)) return null;
-  if (c.scale !== BOOTH.steps) return null;
+  if (c.scale !== BOOTH.steps || c.questions !== QUESTIONS) return null;
   if (c.today.length !== 4 || c.prediction.length !== 4) return null;
   if (!c.today.every(int17) || !c.prediction.every(int17)) return null;
   const years = BOOTH.time.labels.indexOf(c.yearsLabel) + 1;   // the label decides, not the position
@@ -25,11 +28,14 @@ export function clean(c) {
     today: c.today.slice(),
     prediction: c.prediction.slice(),
     scale: BOOTH.steps,
+    questions: QUESTIONS,
     frame: str(c.frame, 120),   // the framing line the answer was given under
     years,
     yearsLabel: c.yearsLabel,
     because: str(c.because, 120),
-    lived: BOOTH.lived.options.some(o => o[0] === c.lived) ? c.lived : null,
+    wish: oneOf(c.wish, BOOTH.wish),
+    lived: oneOf(c.lived, BOOTH.lived),
+    tech: oneOf(c.tech, BOOTH.tech),
     consent: c.consent === true
   };
 }
@@ -49,7 +55,7 @@ function save(cards) {
 
 export function add(card) {
   const all = load();
-  const entry = clean({ ...card, scale: BOOTH.steps, yearsLabel: BOOTH.time.labels[card.years - 1], id: newId(), at: new Date().toISOString() });
+  const entry = clean({ ...card, scale: BOOTH.steps, questions: QUESTIONS, yearsLabel: BOOTH.time.labels[card.years - 1], id: newId(), at: new Date().toISOString() });
   if (!entry) return null;
   if (!entry.no) entry.no = all.reduce((m, c) => Math.max(m, c.no || 0), 0) + 1;
   all.push(entry);

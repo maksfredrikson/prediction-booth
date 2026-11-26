@@ -1,6 +1,7 @@
 // Survey, made for touch. It opens on the frame and the time frame, then asks four questions, each on
 // two lines (today and the prediction), then one last step: consent, an optional reason and
-// an optional tip of data: how long the visitor has lived in the Netherlands. The receipt follows on its own screen. One clear action per screen.
+// an optional tip of data (how long they have lived in the country, how much they work with
+// digital technology). The receipt follows on its own screen. One clear action per screen.
 import { BOOTH as B } from "./content.js";
 import { complete } from "./compose.js";
 import { el } from "./dots.js";
@@ -16,7 +17,7 @@ const EMAILS_CONNECTED = false;
 const screen = document.getElementById("screen");
 const fresh = () => ({
   today: [null, null, null, null], prediction: [null, null, null, null], years: null,
-  because: "", lived: null, consent: null, email: ""
+  wish: null, because: "", lived: null, tech: null, consent: null, email: ""
 });
 let state = fresh();
 
@@ -28,7 +29,7 @@ const FLOW = [];
 FLOW.push(TIME_FIRST ? { k: "time" } : { k: "frame" });   // either way the frame is read first
 B.axes.forEach((_, a) => FLOW.push({ k: "question", a }));
 if (!TIME_FIRST) FLOW.push({ k: "time" });
-FLOW.push({ k: "last" });
+FLOW.push({ k: "wish" }, { k: "last" });
 const STEPS = B.axes.length + 1;   // what the bar counts: the four questions and the last step
 let pos = 0;
 let view = null;   // the scale screen now showing
@@ -69,6 +70,7 @@ function render() {
   view = null;
   disarmPrint();
   if (f.k === "frame") frameScreen();
+  else if (f.k === "wish") wishScreen();
   else if (f.k === "time") view = scaleScreen(null);
   else if (f.k === "question") view = scaleScreen(f.a);
   else lastScreen();
@@ -140,14 +142,19 @@ function scaleScreen(a) {
   const top = !isTime ? head(a + 1, "Question " + (a + 1) + " of " + B.axes.length, ax.q)
     : opens ? head(0, "The question", B.frame)
     : head(B.axes.length + 0.5, "One more thing", ax.q);
+  if (!isTime && ax.already) {   // one line of what is already happening, under the question
+    const now = el("p", "already");
+    now.append(el("span", "kicker", "Already happening"), document.createTextNode(ax.already));
+    top.append(now);
+  }
   mount(stack("stack--l wide", top, opens ? frameIntro() : null,
     opens ? stack("", el("h2", "big big--s", ax.ask || ax.q), board) : board, actions));
 
   function paint() {
     lines.forEach(l => l.paintLine());
     next.disabled = !lines.every(l => l.get() != null);
-    next.textContent = isTime ? (TIME_FIRST ? "Start: question 1" : "Next: last step")
-      : a < B.axes.length - 1 ? "Next question" : TIME_FIRST ? "Next: last step" : "Next: how soon";
+    next.textContent = isTime ? (TIME_FIRST ? "Start: question 1" : "Next: one more question")
+      : a < B.axes.length - 1 ? "Next question" : TIME_FIRST ? "Next: one more question" : "Next: how soon";
   }
   // number keys: fill the first empty line, then change the last one
   const pick = i => {
@@ -169,6 +176,19 @@ function frameScreen() {
   const actions = el("div", "actions");
   actions.append(button("Start: question 1", "btn", "next", () => go(pos + 1)), button("Back", "linkbtn", "back", () => go(pos - 1)));
   mount(stack("stack--l wide", head(0, "The question", B.frame), frameIntro(), actions));
+}
+
+// ---- after the prediction: is this where you want it to go? ---------------------------
+function wishScreen() {
+  const next = button("Next: last step", "btn", "next", () => go(pos + 1));
+  const ready = () => { next.disabled = state.wish == null; };
+  const actions = el("div", "actions");
+  actions.append(next, button("Back", "linkbtn", "back", () => go(pos - 1)));
+  ready();
+  mount(stack("stack--l wide",
+    head(B.axes.length + 0.5, "One more question", B.wish.q),
+    choices("Your answer", B.wish.options, state.wish, v => { state.wish = v; ready(); }),
+    actions));
 }
 
 // A row of large choices; one is chosen. options: [[value, label], ...]. An optional row can
@@ -229,8 +249,9 @@ function lastScreen() {
     stack("form", because.f),
     stack("",
       stack("stack--s", el("div", "kicker", "Optional"), el("h2", "big big--s", "Tip your data"),
-        el("p", "muted", "Like a tip on a bill: one more answer, only if you want to give it. It helps read the cards together.")),
-      choices(B.lived.q, B.lived.options, state.lived, v => { state.lived = v; }, true)),
+        el("p", "muted", "Like a tip on a bill: two more answers, only if you want to give them. They help read the cards together.")),
+      choices(B.lived.q, B.lived.options, state.lived, v => { state.lived = v; }, true),
+      choices(B.tech.q, B.tech.options, state.tech, v => { state.tech = v; }, true)),
     stack("",
       stack("stack--s", el("div", "kicker", "Optional"), el("h2", "big big--s", "Stay in the loop"),
         el("p", "muted", "Leave an email to get the results of the booth and news about this research. It is kept apart from your answers."),
@@ -241,7 +262,7 @@ function lastScreen() {
 }
 
 function donate() {
-  if (!complete(state) || state.consent == null) { go(0); return; }
+  if (!complete(state) || state.consent == null || state.wish == null) { go(0); return; }
   const saved = add({ ...state, frame: B.frame });   // the card keeps the frame it was given under, never the email
   const mailed = state.email ? addEmail(state.email) : false;
   const card = saved || { ...state, frame: B.frame, at: new Date().toISOString() };

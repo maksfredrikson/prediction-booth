@@ -1,7 +1,7 @@
 # Prediction Booth
 
-Donate your view of the Netherlands. A visitor says how far ahead they predict, then marks on
-four questions how they see the country today and where they predict it is heading. The site
+Where is technology taking the Netherlands? A visitor says how far ahead they predict, then marks
+on four questions how they see the country today and where they think it is going. The site
 turns the answer into a donation receipt: the marks, a short scenario text and what the
 prediction costs.
 
@@ -26,7 +26,7 @@ network off.
 | Page | File | What it does |
 |---|---|---|
 | Landing and Explore | `index.html`, `js/explore.js` | One scrolling page. On top: the invitation to the survey. Below: a row of time frames that filters everything under it, the field (a bar chart per question, today up and prediction down, with the group's average move), the roll (every card in order of arrival). Saving cards to a file and adding cards from a file are hidden from visitors: open `index.html#data`. |
-| Survey | `survey.html`, `js/survey.js` | Made for touch. It opens on the framing line ("Where is technology taking the Netherlands?", the `frame` field of the content file, which may change per event) with one short sentence (four questions, a prediction and not a wish), then the years on the same screen, as a slider from 0 to ∞ that settles on six stops (0, 5, 10, 25, 50, ∞); `survey.html?time=after` asks it after the questions instead, to compare. Then four questions on a five-step scale, each on two lines labelled "Today" and "In 10 years"; the meaning of a chosen step shows under its line. Then one last step: consent (required), one line of reasoning and a "tip" of data (how long they have lived in the Netherlands), both optional. Then the receipt on its own screen. |
+| Survey | `survey.html`, `js/survey.js` | Made for touch. It opens on the framing line ("Where is technology taking the Netherlands?", the `frame` field of the content file, which may change per event) with one short sentence (four questions, a prediction and not a wish), then the years on the same screen, as a slider from 0 to ∞ that settles on six stops (0, 5, 10, 25, 50, ∞); `survey.html?time=after` asks it after the questions instead, to compare. Then four questions on a five-step scale, each on two lines labelled "Today" and "In 10 years"; the meaning of a chosen step shows under its line. Then one closing question, "Is this where you want it to go?" (yes, partly, no), kept with the card and printed on the receipt. Then one last step: consent (required), one line of reasoning and a "tip" of data (how long they have lived in the country, how much they work with digital technology), both optional. Then the receipt on its own screen. |
 | Scenarios | `scenarios.html`, `js/scenarios.js` | The five ready-made predictions from the content file, chosen with a row of chips at the top: two scenarios from the zine, and the two edges and the middle of the scale. Each can be opened as an example receipt. |
 | About | `about.html` | The project description as written for the ThingsCon website, then the three questions of the research as a table, the three rules behind the scenario text, and a data policy, a disclaimer and terms of use in plain words. |
 
@@ -38,6 +38,13 @@ monospace face, no colour, dark by default (the small half dot in the navigation
 light). Today is a big halftone dot, the prediction a small solid dot.
 
 Quiet keyboard helpers on the Survey page: Enter = the main action, Esc = back, 1 to 5 = choose a step.
+
+## Another country
+
+The country, the question line and the four "already happening" lines sit together at the top of
+`js/content.js`. Change them there and the survey, the receipt and the pages follow. Three places
+still name the country by hand: the two page descriptions in the `<head>` of `index.html` and
+`survey.html`, and the author's own project description on the About page.
 
 ## Where things live
 

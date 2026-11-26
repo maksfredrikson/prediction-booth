@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prediction Booth</title>
-<meta name="description" content="Donate your view of the Netherlands: mark how you see the country today and where you predict it is heading. You get a donation receipt, and your view joins everyone else's.">
+<meta name="description" content="Where is technology taking the Netherlands? Four questions: how you see the country today and where you think it is going. You get a donation receipt, and your view joins everyone else's.">
 <meta name="color-scheme" content="dark light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23111'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23f4f2ee'/%3E%3C/svg%3E">
 <script>try { if (localStorage.getItem("prediction-booth-theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}</script>
@@ -27,9 +27,9 @@
   <section class="sec stack" aria-labelledby="hero-h">
     <div class="head">
       <div class="kicker">Hi</div>
-      <h1 class="big" id="hero-h">Donate your view of the Netherlands.</h1>
+      <h1 class="big" id="hero-h" data-line>Where is technology taking the Netherlands?</h1>
     </div>
-    <p class="lead">Four questions about the Netherlands: where the country is today, where you predict it is heading, and how soon. You get a donation receipt back, and your view joins the ones below.</p>
+    <p class="lead">Four questions. For each one: where the country is today, and where you think it is going. You get a donation receipt back, and your view joins the ones below.</p>
     <div class="actions">
       <a class="btn" href="survey.html">Start the survey</a>
       <span class="note">About two minutes. No name, no money.</span>
@@ -42,7 +42,7 @@
         <div class="kicker">Explore</div>
         <h2 class="big" id="field-h">Every view, side by side.</h2>
       </div>
-      <p class="lead">One card is one person's view of the Netherlands. Together the cards show how differently the same country looks.</p>
+      <p class="lead">One card is one person's view of <span data-place>the Netherlands</span>. Together the cards show how differently the same country looks.</p>
       <div class="stack stack--s">
         <p id="counts"></p>
         <label class="tick"><input type="checkbox" id="show-invented"><span>Show the invented cards</span></label>

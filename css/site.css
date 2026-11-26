@@ -56,7 +56,7 @@ button, input { font: inherit; color: inherit; }
 
 .stack { display: flex; flex-direction: column; gap: 28px; }
 .stack--s { gap: 12px; }
-.stack--l { gap: 36px; }
+.stack--l { gap: 30px; }
 .sec + .sec, .main > div > .sec:first-child, .main > div + .sec { margin-top: 56px; padding-top: 40px; border-top: 1px dashed var(--line); }
 .kicker { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .big { font-size: clamp(28px, 3.6vw, 42px); line-height: 1.1; font-weight: 500; letter-spacing: -0.02em; max-width: 20em; }
@@ -185,8 +185,11 @@ button, input { font: inherit; color: inherit; }
 .line__label { padding-top: 32px; display: flex; flex-direction: column; gap: 4px; }
 .line__name { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; }
 .line__ask { color: var(--muted); font-size: 14px; line-height: 1.4; }
+/* one line under a question: what is already happening */
+.already { max-width: 64ch; }
+.already .kicker { display: block; margin-bottom: 2px; }
 
-.line__cap { min-height: 4.6em; margin-top: 8px; }
+.line__cap { min-height: 3.4em; margin-top: 6px; }
 .line__cap p { font-size: 17px; line-height: 1.45; max-width: 42em; }
 .line__step { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
 .line--ends .poles { margin: 0; font-size: 14px; color: var(--muted); }

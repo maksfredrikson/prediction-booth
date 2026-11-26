@@ -77,7 +77,6 @@ export function receiptParts(card, opts = {}) {
   add("DONATION RECEIPT");
   if (opts.label) { add(ascii(opts.label)); add(when(card.at)); }
   else add(lr("No " + pad3(card.no || 0), when(card.at)));
-  if (card.frame) { cut(); add(rule("-")); all(wrap(card.frame)); }
   cut(); add(rule("-"));
   add("MARKS   ( ) today  * prediction");
   all(wrap(B.time.q + " (years)", W, "  "));
@@ -101,15 +100,24 @@ export function receiptParts(card, opts = {}) {
   add("TOTAL");
   all(wrap(text.price));
   add(rule("="));
+  const wish = card.wish && B.wish.options.find(o => o[0] === card.wish);
+  if (wish) {
+    cut();
+    all(wrap(B.wish.q.toUpperCase()));
+    add(lr("", wish[1].toUpperCase()));
+    add(rule("-"));
+  }
   cut();
   add("GIVEN");
   add("1 x view of today");
   add("1 x prediction");
   if (card.because) all(wrap('1 x reason: "' + card.because + '"', W, "  "));
   const lived = card.lived && B.lived.options.find(o => o[0] === card.lived);
-  if (lived) {
+  const tech = card.tech && B.tech.options.find(o => o[0] === card.tech);
+  if (lived || tech) {
     add("TIP (your data)");
-    all(wrap("+ in the Netherlands: " + lived[1].toLowerCase(), W, "  "));
+    if (lived) all(wrap("+ in " + B.place + ": " + lived[1].toLowerCase(), W, "  "));
+    if (tech) all(wrap("+ works with digital technology: " + tech[1].toLowerCase(), W, "  "));
   }
   add(lr("PAID", "EUR 0.00"));
   add("");

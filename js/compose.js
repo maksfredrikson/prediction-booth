@@ -3,8 +3,11 @@
 // Marks are step numbers 1 to 5, as printed on the paper card.
 import { BOOTH as B } from "./content.js";
 
-export const list = parts =>
-  parts.length === 1 ? parts[0] : parts.slice(0, -1).join("; ") + "; and " + parts[parts.length - 1];
+// Steps are joined with semicolons, so a semicolon inside a step becomes a comma here.
+export const list = raw => {
+  const parts = raw.map(p => p.replace(/;/g, ","));
+  return parts.length === 1 ? parts[0] : parts.slice(0, -1).join("; ") + "; and " + parts[parts.length - 1];
+};
 
 // s = { today: [1-5 x4], prediction: [1-5 x4], years: 1-6, the stop on the years slider }
 export function compose(s) {
