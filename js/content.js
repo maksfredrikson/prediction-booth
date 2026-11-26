@@ -71,7 +71,7 @@ export const BOOTH = {
   time: {
     q: "How soon will it get there?",
     // the site asks the time frame first, before the questions, so it needs its own wording there
-    ask: "How far ahead do you predict?",
+    ask: "How far ahead would you like to predict?",
     // timescale changed by the user on 25 Nov, late evening: 5, 10, 15, 20, 25 years (was 1 to 5)
     l: "5 years", r: "25 years",
     labels: ["5", "10", "15", "20", "25"],

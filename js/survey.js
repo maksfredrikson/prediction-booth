@@ -15,13 +15,17 @@ const EMAILS_CONNECTED = false;
 const screen = document.getElementById("screen");
 const fresh = () => ({
   today: [null, null, null, null], prediction: [null, null, null, null], years: null,
-  because: "", lived: null, consent: null, paper: "", email: ""
+  because: "", lived: null, consent: null, email: ""
 });
 let state = fresh();
 
 // The order of screens: the time frame, the four questions, the last step.
-const FLOW = [{ k: "time" }];
+// survey.html?time=after asks the time frame after the questions instead, to compare the two.
+const TIME_FIRST = new URLSearchParams(location.search).get("time") !== "after";
+const FLOW = [];
+if (TIME_FIRST) FLOW.push({ k: "time" });
 B.axes.forEach((_, a) => FLOW.push({ k: "question", a }));
+if (!TIME_FIRST) FLOW.push({ k: "time" });
 FLOW.push({ k: "last" });
 const STEPS = B.axes.length + 1;   // what the bar counts: the four questions and the last step
 let pos = 0;
@@ -48,7 +52,7 @@ function progress(step) {
   const bar = el("div", "progress");
   for (let i = 1; i <= STEPS; i++) bar.appendChild(el("i", i < step ? "done" : i === step ? "now" : ""));
   bar.setAttribute("role", "img");
-  bar.setAttribute("aria-label", step ? "Step " + step + " of " + STEPS : STEPS + " steps ahead");
+  bar.setAttribute("aria-label", step ? "Step " + Math.ceil(step) + " of " + STEPS : STEPS + " steps ahead");
   return bar;
 }
 const head = (step, kicker, title) => stack("", progress(step), stack("stack--s", el("div", "kicker", kicker), el("h1", "big", title)));
@@ -78,7 +82,7 @@ function scaleScreen(a) {
   actions.append(next, button("Back", "linkbtn", "back", () => go(pos - 1)));
 
   // one line = a label on the left, a scale, and under it what the chosen step means
-  const line = (key, labelText, promptText, keyCls) => {
+  const line = (key, labelText, promptText, keyCls, stress) => {
     const get = () => (isTime ? state.years : (key === "pred" ? state.prediction : state.today)[a]);
     const set = i => { if (isTime) state.years = i; else (key === "pred" ? state.prediction : state.today)[a] = i; };
     const row = el("div", "line");
@@ -86,6 +90,7 @@ function scaleScreen(a) {
     const name = el("div", "line__name");
     name.append(el("i", "key " + keyCls), document.createTextNode(labelText));
     label.append(name, el("div", "line__ask", promptText));
+    if (stress) label.append(el("div", "line__not", stress));
     const scale = createScale({ label: labelText + ": " + promptText, labels: isTime ? B.time.labels : undefined, onPick: i => { set(i); paint(); } });
     scale.el.classList.add("scale--" + key);
     const cap = el("div", "line__cap");
@@ -103,11 +108,12 @@ function scaleScreen(a) {
     };
     return { row, get, set, paintLine };
   };
-  const when = state.years ? B.time.phrases[state.years - 1] : "by then";
+  // The prediction line says, every time, that it asks for a prediction and not a wish.
+  const when = state.years ? " " + B.time.phrases[state.years - 1] : "";
   const lines = isTime
     ? [line("pred", "Years", "from now", "key--pred")]
-    : [line("today", "Today", "Where is " + B.place + " now?", "key--today"),
-       line("pred", "Prediction", "Where is it " + when + "?", "key--pred")];
+    : [line("today", "Today", "Where it is now, as you see it.", "key--today"),
+       line("pred", "Prediction", "Where you think it is going" + when + ".", "key--pred", "Not where you want it to go.")];
 
   // the two ends of the scale, named once above the lines
   const ends = el("div", "line line--ends");
@@ -117,14 +123,26 @@ function scaleScreen(a) {
   const board = el("div", "lines");
   board.append(isTime ? "" : ends, ...lines.map(l => l.row));
 
-  mount(stack("stack--l wide",
-    isTime ? head(0, "Before the questions", ax.ask || ax.q) : head(a + 1, "Question " + (a + 1) + " of " + B.axes.length, ax.q),
-    board, actions));
+  // Asked first, the time frame needs to say what is about to be predicted.
+  let intro = null;
+  if (isTime && TIME_FIRST) {
+    const topics = el("ol", "topics");
+    B.axes.forEach(x => topics.appendChild(el("li", "", x.q)));
+    intro = stack("stack--s read",
+      el("p", "lead", "This is about change in " + B.place + ". Four questions follow. For each one you mark where the country is today and where you think it is going."),
+      topics,
+      el("p", "", "First choose how far ahead you want to look."));
+  }
+  const top = !isTime ? head(a + 1, "Question " + (a + 1) + " of " + B.axes.length, ax.q)
+    : TIME_FIRST ? head(0, "Before the questions", ax.ask || ax.q)
+    : head(B.axes.length + 0.5, "One more thing", ax.q);
+  mount(stack("stack--l wide", top, intro, board, actions));
 
   function paint() {
     lines.forEach(l => l.paintLine());
     next.disabled = !lines.every(l => l.get() != null);
-    next.textContent = isTime ? "Start: question 1" : a < B.axes.length - 1 ? "Next question" : "Next: last step";
+    next.textContent = isTime ? (TIME_FIRST ? "Start: question 1" : "Next: last step")
+      : a < B.axes.length - 1 ? "Next question" : TIME_FIRST ? "Next: last step" : "Next: how soon";
   }
   // number keys: fill the first empty line, then change the last one
   const pick = i => {
@@ -166,11 +184,9 @@ function lastScreen() {
     return { f, i };
   };
   const because = field("w-because", "I predict this because (one line, if you like)", 120, state.because);
-  const paper = field("w-paper", "Paper card number, if you hold one", 3, state.paper);
-  paper.i.inputMode = "numeric";
   const email = field("w-email", "Email (optional)", 120, state.email);
   email.i.type = "email"; email.i.inputMode = "email"; email.i.autocomplete = "email";
-  const keep = () => { state.because = because.i.value; state.paper = paper.i.value; state.email = email.i.value.trim(); };
+  const keep = () => { state.because = because.i.value; state.email = email.i.value.trim(); };
 
   const give = button("Donate my view", "btn", "", () => { keep(); donate(); });
   const hint = el("p", "note");
@@ -202,15 +218,13 @@ function lastScreen() {
         el("p", "muted", "Leave an email to get the results of the booth and news about this research. It is kept apart from your answers."),
         EMAILS_CONNECTED ? null : el("p", "note", "Prototype: this sign-up is not connected yet. For now your address stays on this device.")),
       stack("form", email.f)),
-    stack("form", paper.f),
     stack("stack--s", el("p", "note", "The booth keeps your marks, your consent answer, and whatever you add here. Never your name."), hint),
     actions));
 }
 
 function donate() {
   if (!complete(state) || state.consent == null) { go(0); return; }
-  const no = parseInt(state.paper, 10);
-  const saved = add({ ...state, no: Number.isInteger(no) && no > 0 ? no : null });   // the card never holds the email
+  const saved = add({ ...state });   // the card never holds the email
   const mailed = state.email ? addEmail(state.email) : false;
   const card = saved || { ...state, at: new Date().toISOString() };
   state = fresh();
