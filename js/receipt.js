@@ -77,6 +77,7 @@ export function receiptParts(card, opts = {}) {
   add("DONATION RECEIPT");
   if (opts.label) { add(ascii(opts.label)); add(when(card.at)); }
   else add(lr("No " + pad3(card.no || 0), when(card.at)));
+  if (card.frame) { cut(); add(rule("-")); all(wrap(card.frame)); }
   cut(); add(rule("-"));
   add("MARKS   ( ) today  * prediction");
   all(wrap(B.time.q + " (years)", W, "  "));

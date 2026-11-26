@@ -24,6 +24,7 @@ export function clean(c) {
     today: c.today.slice(),
     prediction: c.prediction.slice(),
     scale: BOOTH.steps,
+    frame: str(c.frame, 120),   // the framing line the answer was given under
     years: c.years,
     because: str(c.because, 120),
     lived: BOOTH.lived.options.some(o => o[0] === c.lived) ? c.lived : null,

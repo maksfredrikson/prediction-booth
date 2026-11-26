@@ -1,4 +1,4 @@
-// Survey, made for touch. It opens on the time frame, then asks four questions, each on
+// Survey, made for touch. It opens on the frame and the time frame, then asks four questions, each on
 // two lines (today and the prediction), then one last step: consent, an optional reason and
 // an optional tip of data: how long the visitor has lived in the Netherlands. The receipt follows on its own screen. One clear action per screen.
 import { BOOTH as B } from "./content.js";
@@ -23,7 +23,7 @@ let state = fresh();
 // survey.html?time=after asks the time frame after the questions instead, to compare the two.
 const TIME_FIRST = new URLSearchParams(location.search).get("time") !== "after";
 const FLOW = [];
-if (TIME_FIRST) FLOW.push({ k: "time" });
+FLOW.push(TIME_FIRST ? { k: "time" } : { k: "frame" });   // either way the frame is read first
 B.axes.forEach((_, a) => FLOW.push({ k: "question", a }));
 if (!TIME_FIRST) FLOW.push({ k: "time" });
 FLOW.push({ k: "last" });
@@ -66,7 +66,8 @@ function render() {
   const f = FLOW[pos];
   view = null;
   disarmPrint();
-  if (f.k === "time") view = scaleScreen(null);
+  if (f.k === "frame") frameScreen();
+  else if (f.k === "time") view = scaleScreen(null);
   else if (f.k === "question") view = scaleScreen(f.a);
   else lastScreen();
   if (view) view.paint();
@@ -123,20 +124,14 @@ function scaleScreen(a) {
   const board = el("div", "lines");
   board.append(isTime ? "" : ends, ...lines.map(l => l.row));
 
-  // Asked first, the time frame needs to say what is about to be predicted.
-  let intro = null;
-  if (isTime && TIME_FIRST) {
-    const topics = el("ol", "topics");
-    B.axes.forEach(x => topics.appendChild(el("li", "", x.q)));
-    intro = stack("stack--s read",
-      el("p", "lead", "This is about change in " + B.place + ". Four questions follow. For each one you mark where the country is today and where you think it is going."),
-      topics,
-      el("p", "", "First choose how far ahead you want to look."));
-  }
+  // The survey opens on the frame. The time frame is asked under it, on the same screen,
+  // so the visitor knows the topic before choosing how far ahead to look.
+  const opens = isTime && TIME_FIRST;
   const top = !isTime ? head(a + 1, "Question " + (a + 1) + " of " + B.axes.length, ax.q)
-    : TIME_FIRST ? head(0, "Before the questions", ax.ask || ax.q)
+    : opens ? head(0, "The question", B.frame)
     : head(B.axes.length + 0.5, "One more thing", ax.q);
-  mount(stack("stack--l wide", top, intro, board, actions));
+  mount(stack("stack--l wide", top, opens ? frameIntro() : null,
+    opens ? stack("", el("h2", "big big--s", ax.ask || ax.q), board) : board, actions));
 
   function paint() {
     lines.forEach(l => l.paintLine());
@@ -151,6 +146,22 @@ function scaleScreen(a) {
     l.set(i); paint();
   };
   return { paint, pick };
+}
+
+// What the frame is followed by: the four questions, named before they are asked.
+function frameIntro() {
+  const topics = el("ol", "topics");
+  B.axes.forEach(x => topics.appendChild(el("li", "", x.q)));
+  return stack("stack--s read",
+    el("p", "lead", "Four questions follow. For each one you mark where the country is today and where you think it is going."),
+    topics);
+}
+
+// The frame on a screen of its own: only used when the time frame is asked after the questions.
+function frameScreen() {
+  const actions = el("div", "actions");
+  actions.append(button("Start: question 1", "btn", "next", () => go(pos + 1)), button("Back", "linkbtn", "back", () => go(pos - 1)));
+  mount(stack("stack--l wide", head(0, "The question", B.frame), frameIntro(), actions));
 }
 
 // A row of large choices; one is chosen. options: [[value, label], ...]. An optional row can
@@ -224,9 +235,9 @@ function lastScreen() {
 
 function donate() {
   if (!complete(state) || state.consent == null) { go(0); return; }
-  const saved = add({ ...state });   // the card never holds the email
+  const saved = add({ ...state, frame: B.frame });   // the card keeps the frame it was given under, never the email
   const mailed = state.email ? addEmail(state.email) : false;
-  const card = saved || { ...state, at: new Date().toISOString() };
+  const card = saved || { ...state, frame: B.frame, at: new Date().toISOString() };
   state = fresh();
   showResult(card, saved ? { saved: true, mailed } : { saved: false, label: "NOT SAVED", title: "Your view", note: "This browser refused to save the answer, so it is shown once and not kept." });
 }
@@ -291,7 +302,7 @@ function usePreset(k) {
   if (!pr) return;
   const years = 2;
   const mid = Math.ceil(B.steps / 2);
-  showResult({ today: [mid, mid, mid, mid], prediction: pr.pred.slice(), years, at: new Date().toISOString() },
+  showResult({ today: [mid, mid, mid, mid], prediction: pr.pred.slice(), years, frame: B.frame, at: new Date().toISOString() },
     { saved: false, preset: k, title: pr.name,
       note: "A scenario shown as a receipt: today sits in the middle of every scale, the prediction is this scenario, " + B.time.phrases[years - 1] + "." +
         (pr.text ? " From the zine: " + pr.text : "") });
@@ -313,7 +324,7 @@ document.addEventListener("keydown", e => {
 const qs = new URLSearchParams(location.search);
 const digits = (qs.get("m") || "").replace(/[^1-9]/g, "").split("").map(Number);
 if (digits.length === 9 && digits.slice(0, 8).every(v => v <= B.steps) && digits[8] <= B.time.labels.length) {
-  showResult({ today: digits.slice(0, 4), prediction: digits.slice(4, 8), years: digits[8], at: new Date().toISOString() },
+  showResult({ today: digits.slice(0, 4), prediction: digits.slice(4, 8), years: digits[8], frame: B.frame, at: new Date().toISOString() },
     { saved: false, title: "An answer from a link", note: "Opened from a link. Nothing is saved." });
 } else if (qs.get("preset") !== null && B.presets[parseInt(qs.get("preset"), 10)]) {
   usePreset(parseInt(qs.get("preset"), 10));

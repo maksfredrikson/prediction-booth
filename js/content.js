@@ -9,6 +9,9 @@ export const BOOTH = {
   title: "Prediction Booth",
   line: "Donate your view of the Netherlands",
   place: "the Netherlands",
+  // The frame: the first line a visitor reads when the survey starts. It is not a question
+  // to answer. It may change from one event to the next; the four questions below do not.
+  frame: "Where is technology taking the Netherlands?",
   steps: 5,
   axes: [
     {
