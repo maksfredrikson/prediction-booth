@@ -31,9 +31,9 @@ export const BOOTH = {
       already: ALREADY[0],
       steps: [
         "help comes from people you know",
-        "people you know come first; services fill the gaps",
+        "people you know come first, and services fill the gaps",
         "people you know and systems answer equally",
-        "systems come first; people you know fill the gaps",
+        "systems come first, and people you know fill the gaps",
         "help comes from systems: services, apps, machines"
       ],
       toLeft: "Care becomes personal again, and so does being left out: whoever has no family has nobody.",
@@ -49,7 +49,7 @@ export const BOOTH = {
         "people are held together by shared rituals: the same holidays, habits and stories",
         "shared rituals still lead, but roles differ",
         "shared rituals and relying on each other's work count equally",
-        "relying on each other's work leads; shared rituals count less",
+        "relying on each other's work leads, and shared rituals count less",
         "people are held together by relying on each other's different work"
       ],
       toLeft: "Less room for people who live differently.",
@@ -61,11 +61,11 @@ export const BOOTH = {
       l: "Who you are and where you come from", r: "What you have signed: contracts, terms, accounts",
       already: ALREADY[2],
       steps: [
-        "who you are decides your place",
+        "who you are decides how you are treated",
         "background counts most, agreements a little",
         "background and agreements count the same",
         "agreements count more than background",
-        "what you signed decides your place"
+        "what you have signed decides how you are treated"
       ],
       toLeft: "People are known, and people are fixed in place.",
       toRight: "Everyone is held to the same terms, and whoever cannot read the terms loses."
@@ -140,8 +140,8 @@ export const BOOTH = {
   },
   talk: [
     "Who helped you last: a person or a system?",
-    "What would make a newcomer belong here by then?",
-    "Which agreement set your place this year?",
+    "Whose work did you rely on today without meeting them?",
+    "Which terms did you accept this year without reading them?",
     "Which decision should never be left to a model?"
   ]
 };

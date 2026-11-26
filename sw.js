@@ -1,6 +1,6 @@
 // Offline cache. Network first, so a new version shows at once when online;
 // the cached copy answers when the network is off or slow.
-const CACHE = "prediction-booth-v24";
+const CACHE = "prediction-booth-v25";
 const ASSETS = [
   "./", "index.html", "survey.html", "scenarios.html", "about.html", "explore.html", "css/site.css",
   "js/content.js", "js/compose.js", "js/dots.js", "js/pattern.js", "js/scale.js", "js/slider.js", "js/store.js", "js/receipt.js",
